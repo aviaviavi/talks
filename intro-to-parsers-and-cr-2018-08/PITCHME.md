@@ -61,6 +61,11 @@ This is fine, but quickly gets complicated and very challenging to read:
     - Ad-hoc property checking functions are fine until you need to generalize
     - Often ends up being much more code than a simple regex
     - Eventually end up reinventing the wheel
+
+---
+
+### What we're used to
+
 - Regular expressions
   - Pros:
     - Declarative
@@ -76,17 +81,134 @@ This is fine, but quickly gets complicated and very challenging to read:
 
 Tiny little parsing functions that you can use to build up your own parsers
 
+For this talk, we'll be using the MegaParsec library.
+
+---
+
+### Some terminology
+
+- Stream: The sequence of information we're trying to parse
+- Token: A single element of the stream
+- Lexeme: A logical collection of tokens, like a word and the following spaces
+
+---
+
+### Some terminology
+
+```
+[ stuff_to_parse    ]
+
+^^^^^^ Tokens  ^^^^^^
+
+^-^--- Lexemes -----^
+
+^----- Stream  ------
+```
+
+---
+
+### Let's jump into some code!
+
 ```haskell
-import Text.Megaparsec
-import Text.Megaparsec.String
+-- We generally start off by defining our Parser type synonym
+type Parser = Parsec Void Text
+                     ^    ^
+                     |    |
+Custom error component    Type of input (stream)
+```
+
+---
+
+```haskell
+type Parser = Parsec Void Text
+
+myParser :: Parser MyType
+```
+
+---
+
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+
+import           Data.Text            (Text)
+import           Data.Void            (Void)
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
+
+/* Here is our parser definition. We will parse text, and have passed in Void for our custom errors, meaning
+we'll use the default */
+type Parser = Parsec Void Text
+
+parseCharH :: Parser Char
+parseCharH  = char 'h'
 
 goodInput = "h"
+
 badInput = "not an h"
 
 main = do
-    input <- fmap head getArgs
-    parseTest singleLetterP input
+    parseTest parseCharH goodInput
+    parseTest parseCharH badInput
+```
 
-singleLetterP :: Parser Char
-singleLetterP = char 'h'
+---
+
+```bash
+~/s/t/intro-to-parsers-and-cr-2018-08 ❯❯❯ stack runghc test.hs
+'h'
+1:1:
+unexpected 'n'
+expecting 'h'
+here
+```
+
+---
+
+### A more detailed example: parse TODO's in code
+
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+
+import           Data.Text            (Text)
+import           Data.Void            (Void)
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
+
+-- Again, we'll parse some text
+type Parser = Parsec Void Text
+```
+
+---
+
+### A more detailed example: parse TODO's in code
+
+```haskell
+
+-- a data structure to parse
+data TodoEntry = TodoEntry { body :: Text }
+```
+
+---
+
+### A more detailed example: parse TODO's in code
+
+A foundational part of building the parser is deciding on how to handle whitespace, so we can
+define our lexeme handling
+
+`Text.Megaparsec.Char.Lexer`
+
+```haskell
+-- define our base symbol
+symbol    = L.symbol space
+
+-- now that we have a symbol, we can easily write simple, composable, literal parsers
+parens    = between (symbol "(") (symbol ")")
+braces    = between (symbol "{") (symbol "}")
+angles    = between (symbol "<") (symbol ">")
+brackets  = between (symbol "[") (symbol "]")
+semicolon = symbol ";"
+comma     = symbol ","
+colon     = symbol ":"
+dot       = symbol "."
 ```
