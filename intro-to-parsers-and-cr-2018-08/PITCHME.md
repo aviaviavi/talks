@@ -193,6 +193,20 @@ data TodoEntry = TodoEntry { body :: Text }
 
 ### A more detailed example: parse TODO's in code
 
+`Text.Megaparsec.Char`
+
+Offers some basic building blocks for parsing single characters
+
+```haskell
+anyChar :: MonadParsec e s m => m (Token s)
+digitChar :: (MonadParsec e s m, Token s ~ Char) => m (Token s)
+space :: (MonadParsec e s m, Token s ~ Char) => m ()
+```
+
+---
+
+### A more detailed example: parse TODO's in code
+
 A foundational part of building the parser is deciding on how to handle whitespace, so we can
 define our lexeme handling
 
@@ -202,13 +216,65 @@ define our lexeme handling
 -- define our base symbol
 symbol    = L.symbol space
 
--- now that we have a symbol, we can easily write simple, composable, literal parsers
-parens    = between (symbol "(") (symbol ")")
-braces    = between (symbol "{") (symbol "}")
-angles    = between (symbol "<") (symbol ">")
-brackets  = between (symbol "[") (symbol "]")
+-- now that we have a symbol, we can easily write simple, composable, literal parsers 
+-- that automatically consume whitespace after
+-- for example:
 semicolon = symbol ";"
-comma     = symbol ","
-colon     = symbol ":"
-dot       = symbol "."
+hello = symbol "hello"
+parens    = between (symbol "(") (symbol ")")
+```
+
+---
+
+### A more detailed example: parse TODO's in code
+
+```haskell
+-- define our base symbol
+symbol    = L.symbol space
+
+-- lets parse our TODOs!
+
+haskellCommentStart :: Parser Text
+haskellCommentStart = symbol "--"
+
+todoFlag :: Parser Text
+todoFlag = symbol "TODO"
+
+parseTODO :: Parser TodoEntry
+parseTODO = fail "TODO"
+```
+
+---
+
+### The parser monad
+
+At each step in our `do` notation we can:
+- consume part of our stream that matches some criteria
+  - parse (part or all of) a data type
+  - discard it and continue
+- inspect our location in the stream without consuming it
+  - see `try`, `lookAhead`
+- fail
+
+### A more detailed example: parse TODO's in code
+
+```haskell
+-- define our base symbol
+symbol    = L.symbol space
+
+-- lets parse our TODOs!
+
+haskellCommentStart :: Parser Text
+haskellCommentStart = symbol "--"
+
+todoFlag :: Parser Text
+todoFlag = symbol "TODO"
+
+parseTODO :: Parser TodoEntry
+parseTODO = do
+  _ <- optional space
+  _ <- haskellCommentStart
+  _ <- todoFlag
+  body <- many anyChar
+  return TodoEntry body
 ```
