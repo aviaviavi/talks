@@ -240,8 +240,9 @@ haskellCommentStart = symbol "--"
 todoFlag :: Parser Text
 todoFlag = symbol "TODO"
 
-parseTODO :: Parser TodoEntry
-parseTODO = fail "TODO"
+-- TODO our parser should be able to parse a line just like this!
+parseBasicTODO :: Parser TodoEntry
+parseBasicTODO = fail "TODO"
 ```
 
 ---
@@ -270,11 +271,28 @@ haskellCommentStart = symbol "--"
 todoFlag :: Parser Text
 todoFlag = symbol "TODO"
 
-parseTODO :: Parser TodoEntry
-parseTODO = do
-  _ <- optional space
+parseBasicTODO :: Parser TodoEntry
+parseBasicTODO = do
+  _ <- try space
   _ <- haskellCommentStart
   _ <- todoFlag
   body <- many anyChar
+  return TodoEntry body
+```
+
+### A more detailed example: parse TODO's in code
+
+```haskell
+parseBasicTODO :: Parser TodoEntry
+parseBasicTODO = do
+  -- consume any leading space, don't care if it succeeds
+  _ <- try space
+  -- consume the "--", abort on failure
+  _ <- haskellCommentStart
+  -- consume "TODO", abort on failure
+  _ <- todoFlag
+  -- any characters after that gives us the body
+  body <- many anyChar
+  -- all done!
   return TodoEntry body
 ```
