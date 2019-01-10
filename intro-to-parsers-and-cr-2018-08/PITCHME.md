@@ -280,6 +280,8 @@ parseBasicTODO = do
   return TodoEntry body
 ```
 
+---
+
 ### A more detailed example: parse TODO's in code
 
 ```haskell
@@ -295,4 +297,46 @@ parseBasicTODO = do
   body <- many anyChar
   -- all done!
   return TodoEntry body
+```
+
+---
+
+### Running our parser
+
+While developing, running your parser with `parseTest` is nice
+for printing results to stdout
+
+```haskell
+parseTest
+:: (ShowErrorComponent e, Ord (Token s), ShowToken (Token s), Show a)	 
+=> Parsec e s a --	Parser to run
+-> s -- Input for parser
+-> IO ()
+```
+
+---
+
+### Running our parser
+
+When it's time to deploy your real parser, the most straightforward way to run
+you parser is with. (see also: `parseMaybe`, `runParserT`
+
+```haskell
+parse
+:: Parsec e s a	-- Parser to run
+-> String -- Name of source file
+-> s -- Input for parser
+-> Either (ParseError (Token s) e) a	 
+```
+
+---
+
+### Running our parser
+
+```haskell
+parseBasicTODO :: Parser TodoEntry
+
+main = do
+    parseTest parseBasicTODO " -- TODO here's some stuff we need to do!"
+    parseTest parseCharH "this should fail"
 ```
