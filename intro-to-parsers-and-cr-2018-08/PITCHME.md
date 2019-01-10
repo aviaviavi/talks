@@ -10,6 +10,7 @@ For simple things, just checking a few conditions directly works fine. For insta
 ```python
 if s.startswith("[") and s.endswith("]"):
    return s.replace("[", "").replace("]", "")
+
 ``` 
 
 ---
@@ -186,7 +187,7 @@ type Parser = Parsec Void Text
 ```haskell
 
 -- a data structure to parse
-data TodoEntry = TodoEntry { body :: Text }
+data TodoEntry = TodoEntry { body :: Text } deriving (Show)
 ```
 
 ---
@@ -316,8 +317,6 @@ parseTest
 
 ---
 
-### Running our parser
-
 When it's time to deploy your real parser, the most straightforward way to run
 you parser is with. (see also: `parseMaybe`, `runParserT`
 
@@ -331,12 +330,43 @@ parse
 
 ---
 
-### Running our parser
-
 ```haskell
 parseBasicTODO :: Parser TodoEntry
 
 main = do
     parseTest parseBasicTODO " -- TODO here's some stuff we need to do!"
-    parseTest parseCharH "this should fail"
+    parseTest parseBasicTODO "this should fail"
+```
+
+--- 
+
+### Let's have some metadata in our todos
+
+Let's say we want to be able to assign TODO's in our code
+
+```haskell
+data AssignableTodoEntry = AssignableTodoEntry String (Maybe String) deriving (Show)
+```
+
+```
+-- TODO(assignee) some todo body text
+```
+
+---
+
+```haskell
+inParens :: Parser a -> Parser a
+inParens = between (symbol "(") (symbol ")")
+
+parseAssignee :: Parser [Char]
+parseAssignee = inParens (many $ noneOf [')', '('])
+
+parseTODO :: Parser AssignableTodoEntry
+parseTODO = do
+  _ <- try space
+  _ <- haskellCommentStart
+  _ <- todoFlag
+  assignee <- optional parseAssignee
+  body <- many anyChar
+  return $ AssignableTodoEntry body assignee
 ```
