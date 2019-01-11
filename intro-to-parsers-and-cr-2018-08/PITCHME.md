@@ -3,6 +3,23 @@
 
 ---
 
+### What is parsing?
+
+Loosely:
+
+String -> YourDataType
+
+---
+
+### What is parsing?
+
+```javascript
+> new Date(Date.parse("Feb 24, 2019"))
+Sun Feb 24 2019 00:00:00 GMT-0800 (Pacific Standard Time)
+```
+
+---
+
 ### What we're used to
 
 For simple things, just checking a few conditions directly works fine. For instance, grabbing content between brackets:
@@ -10,7 +27,6 @@ For simple things, just checking a few conditions directly works fine. For insta
 ```python
 if s.startswith("[") and s.endswith("]"):
    return s.replace("[", "").replace("]", "")
-
 ``` 
 
 ---
@@ -26,7 +42,7 @@ if s.startswith("[") and s.endswith("]"):
 
 What about spaces?
 
-`[ we_want_to_parse_this_too      ]`
+```[ we_want_to_parse_this_too      ]```
 
 ---
 
@@ -34,7 +50,7 @@ What about spaces?
 
 What about spaces?
 
-`[ we_want_to_parse_this_too      ]`
+```[ we_want_to_parse_this_too      ]```
 
 
 It's often compelling to reach for a regex
@@ -46,7 +62,7 @@ It's often compelling to reach for a regex
 This is fine, but quickly gets complicated and very challenging to read:
 
 ```
-# good luck editing this in 6 months!
+# a regex for parsing dates, good luck editing this after a year passes!
 ^(?:(?:(?:0?[13578]|1[02])(\/|-|\.)31)\1|(?:(?:0?[13-9]|1[0-2])(\/|-|\.)(?:29|30)\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:0?2(\/|-|\.)29\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:(?:0?[1-9])|(?:1[0-2]))(\/|-|\.)(?:0?[1-9]|1\d|2[0-8])\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$
 ```
 
@@ -129,16 +145,13 @@ myParser :: Parser MyType
 ---
 
 ```haskell
-{-# LANGUAGE OverloadedStrings #-}
-
-import           Data.Text            (Text)
 import           Data.Void            (Void)
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 
 /* Here is our parser definition. We will parse text, and have passed in Void for our custom errors, meaning
 we'll use the default */
-type Parser = Parsec Void Text
+type Parser = Parsec Void String
 
 parseCharH :: Parser Char
 parseCharH  = char 'h'
@@ -155,7 +168,7 @@ main = do
 ---
 
 ```bash
-~/s/t/intro-to-parsers-and-cr-2018-08 ❯❯❯ stack runghc test.hs
+❯❯❯ stack runghc test.hs
 'h'
 1:1:
 unexpected 'n'
@@ -168,32 +181,24 @@ here
 ### A more detailed example: parse TODO's in code
 
 ```haskell
-{-# LANGUAGE OverloadedStrings #-}
-
-import           Data.Text            (Text)
 import           Data.Void            (Void)
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
--- Again, we'll parse some text
-type Parser = Parsec Void Text
+-- Again, we'll parse strings
+type Parser = Parsec Void String
 ```
 
 ---
-
-### A more detailed example: parse TODO's in code
 
 ```haskell
 
 -- a data structure to parse
-data TodoEntry = TodoEntry { body :: Text } deriving (Show)
+data TodoEntry = TodoEntry String deriving (Show)
 ```
 
 ---
-
-### A more detailed example: parse TODO's in code
-
 `Text.Megaparsec.Char`
 
 Offers some basic building blocks for parsing single characters
@@ -205,8 +210,6 @@ space :: (MonadParsec e s m, Token s ~ Char) => m ()
 ```
 
 ---
-
-### A more detailed example: parse TODO's in code
 
 A foundational part of building the parser is deciding on how to handle whitespace, so we can
 define our lexeme handling
@@ -226,8 +229,6 @@ parens    = between (symbol "(") (symbol ")")
 ```
 
 ---
-
-### A more detailed example: parse TODO's in code
 
 ```haskell
 -- define our base symbol
@@ -283,8 +284,6 @@ parseBasicTODO = do
 
 ---
 
-### A more detailed example: parse TODO's in code
-
 ```haskell
 parseBasicTODO :: Parser TodoEntry
 parseBasicTODO = do
@@ -336,8 +335,7 @@ parseBasicTODO :: Parser TodoEntry
 main = do
     parseTest parseBasicTODO " -- TODO here's some stuff we need to do!"
     parseTest parseBasicTODO "this should fail"
-```
-
+``` 
 --- 
 
 ### Let's have some metadata in our todos
@@ -370,3 +368,72 @@ parseTODO = do
   body <- many anyChar
   return $ AssignableTodoEntry body assignee
 ```
+
+---
+
+```haskell
+main = do
+  parseTest parseTODO " -- TODO(avi) here's some stuff we need to do!"
+  parseTest parseTODO " -- TODO here's some stuff we need to do!"
+  parseTest parseTODO "this should fail"
+```
+
+```
+❯❯❯ stack runghc test1.hs
+AssignableTodoEntry "here's some stuff we need to do!" (Just "avi")
+AssignableTodoEntry "here's some stuff we need to do!" Nothing
+1:1:
+unexpected "th"
+expecting "--" or white space
+```
+
+---
+
+### Falling back
+
+Suppose we want to pasre TODO's or a comment when TODO parsing fails
+
+```haskell
+data Comment = TodoEntry String | PlainComment String deriving (Show)
+```
+
+---
+
+```haskell
+parsePlainComment :: Parser Comment
+parsePlainComment = do
+  _ <- try space
+  _ <- haskellCommentStart
+  body <- many anyChar
+  return $ PlainComment body
+  
+-- same implenation as before, just an edited type signature
+parseTODO :: Parser Comment
+
+parseComment :: Parser Comment
+parseComment = (try parseTODO) <|> parsePlainComment
+```
+
+--- 
+
+### Wrapping up
+
+This approach to parsing:
+
+- Powerful parsers that are highly composable
+- Type safe
+- Readable
+- Is easy to maintain
+
+Reach for Haskell + megaparsec (or similar) the next time you have some parsing to do!
+
+---
+
+# Thank you!
+
+[Slides](https://github.com/aviaviavi/talks/intro-pasers)
+
+#### Avi Press
+- [Website](https://avi.press)
+- [Twitter](https://twitter.com/avi_press)
+- [Github](https://github.com/aviaviavi)
