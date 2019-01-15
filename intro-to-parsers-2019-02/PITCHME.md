@@ -31,24 +31,30 @@ Sun Feb 24 2019 00:00:00 GMT-0800 (Pacific Standard Time)
 
 ### What we're used to
 
-For simple things, just checking a few conditions directly works fine. For instance, grabbing content between brackets:
+For simple things, just checking a few conditions directly works fine. For
+instance, grabbing content between brackets:
 
 ```haskell
 s :: Text
 
+... 
 if head s == "[" && last s == "]"
-then Text.replaceAll (Text.replaceAll s "[" "") "]" ""
+then Text.replace "]" "" (Text.replace "[" "" s)
 ``` 
 
 ---
 
 ### What we're used to
 
-For simple things, just checking a few conditions directly works fine. For instance, grabbing content between brackets:
+For simple things, just checking a few conditions directly works fine. For
+instance, grabbing content between brackets:
 
-```python
-if s.startswith("[") and s.endswith("]"):
-   return s.replace("[", "").replace("]", "")
+```haskell
+s :: Text
+
+... 
+if head s == "[" && last s == "]"
+then Text.replace "]" "" (Text.replace "[" "" s)
 ``` 
 
 What about spaces?
@@ -57,7 +63,7 @@ What about spaces?
 "[ we_want_to_parse_this_too      ]"
 ```
 
----
+--- 
 
 ### What we're used to
 
@@ -74,7 +80,26 @@ It's often compelling to reach for a regex
 \[\s*(\S+)\s*\]
 ```
 
-This is fine, but quickly gets complicated and very challenging to read:
+This is fine, but quickly gets complicated and very challenging to read
+
+--- 
+
+### What we're used to
+
+What about spaces?
+
+```
+"[ we_want_to_parse_this_too      ]"
+```
+
+
+It's often compelling to reach for a regex
+
+```
+\[\s*(\S+)\s*\]
+```
+
+This is fine, but quickly gets complicated and very challenging to read
 
 ```
 # a regex for parsing dates, good luck editing this after a year passes!
@@ -191,6 +216,9 @@ here
 
 ### A more detailed example: parse TODO's in code
 
+A real world use-case: a tool to manage TODO's in a codebase. (See the actual 
+implementation of [Toodles here](https://github.com/aviaviavi/toodles))
+
 ```haskell
 import           Data.Void            (Void)
 import           Text.Megaparsec
@@ -215,7 +243,7 @@ data TodoEntry = TodoEntry String deriving (Show)
 Offers some basic building blocks for parsing single characters
 
 ```haskell
-anyChar :: MonadParsec e s m => m (Token s)
+anyChar :: MonadParsec e s m => m (Token s) -- (NOTE: renamed to `anySingle` in megaparsec 7)
 digitChar :: (MonadParsec e s m, Token s ~ Char) => m (Token s)
 space :: (MonadParsec e s m, Token s ~ Char) => m ()
 ```
@@ -225,7 +253,9 @@ space :: (MonadParsec e s m, Token s ~ Char) => m ()
 A foundational part of building the parser is deciding on how to handle whitespace, so we can
 define our lexeme handling
 
-`Text.Megaparsec.Char.Lexer`
+```
+Text.Megaparsec.Char.Lexer
+```
 
 ```haskell
 -- define our base symbol
@@ -323,7 +353,7 @@ parseTest
 ---
 
 When it's time to deploy your real parser, the most straightforward way to run
-you parser is with. (see also: `parseMaybe`, `runParserT`
+you parser is with: 
 
 ```haskell
 parse
@@ -332,6 +362,8 @@ parse
 -> s -- Input for parser
 -> Either (ParseError (Token s) e) a	 
 ```
+
+(see also: `parseMaybe`, `runParserT`)
 
 ---
 
@@ -389,7 +421,7 @@ main = do
 
 ```
 ❯❯❯ stack runghc test1.hs
-AssignableTodoEntry "here's some stuff we need to do!" (Just "avi")
+AssignableTodoEntry "here's some stuff we need to do!" (Just "a name")
 AssignableTodoEntry "here's some stuff we need to do!" Nothing
 1:1:
 unexpected "th"
@@ -400,8 +432,8 @@ expecting "--" or white space
 
 ### Alternatives
 
-The notion of falling back to a parser when another fails is a common need when
-parsing. Suppose we want to parse TODO's *or* a plain comment when TODO parsing fails
+The notion of falling back to a parser when another fails is a common need.
+Suppose we want to parse TODO's *or* a plain comment when TODO parsing fails
 
 ```haskell
 data Comment = TodoEntry String | PlainComment String deriving (Show)
@@ -442,6 +474,7 @@ Reach for Haskell + megaparsec (or similar) the next time you have some parsing 
 # Thank you!
 
 [Slides](https://github.com/aviaviavi/talks/intro-pasers)
+[Toodles](https://github.com/aviaviavi/toodles)
 
 #### Avi Press
 - [Website](https://avi.press)
