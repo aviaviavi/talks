@@ -3,11 +3,20 @@
 
 ---
 
+### Contents
+
+- Traditional Approaches
+- Monadic Parsing, MegaParsec
+  - Library Overview
+  - Examples (simple Haskell to build up intuition)
+
+---
+
 ### What is parsing?
 
 Loosely:
 
-String -> YourDataType
+(String | Text | Bytes | YourUnstructuredDataStream) -> YourDataType
 
 ---
 
@@ -24,9 +33,11 @@ Sun Feb 24 2019 00:00:00 GMT-0800 (Pacific Standard Time)
 
 For simple things, just checking a few conditions directly works fine. For instance, grabbing content between brackets:
 
-```python
-if s.startswith("[") and s.endswith("]"):
-   return s.replace("[", "").replace("]", "")
+```haskell
+s :: Text
+
+if head s == "[" && last s == "]"
+then Text.replaceAll (Text.replaceAll s "[" "") "]" ""
 ``` 
 
 ---
@@ -42,7 +53,9 @@ if s.startswith("[") and s.endswith("]"):
 
 What about spaces?
 
-```[ we_want_to_parse_this_too      ]```
+```
+"[ we_want_to_parse_this_too      ]"
+```
 
 ---
 
@@ -50,7 +63,9 @@ What about spaces?
 
 What about spaces?
 
-```[ we_want_to_parse_this_too      ]```
+```
+"[ we_want_to_parse_this_too      ]"
+```
 
 
 It's often compelling to reach for a regex
@@ -128,7 +143,7 @@ For this talk, we'll be using the MegaParsec library.
 
 ```haskell
 -- We generally start off by defining our Parser type synonym
-type Parser = Parsec Void Text
+type Parser = Parsec Void String
                      ^    ^
                      |    |
 Custom error component    Type of input (stream)
@@ -137,7 +152,7 @@ Custom error component    Type of input (stream)
 ---
 
 ```haskell
-type Parser = Parsec Void Text
+type Parser = Parsec Void String
 
 myParser :: Parser MyType
 ```
@@ -156,13 +171,9 @@ type Parser = Parsec Void String
 parseCharH :: Parser Char
 parseCharH  = char 'h'
 
-goodInput = "h"
-
-badInput = "not an h"
-
 main = do
-    parseTest parseCharH goodInput
-    parseTest parseCharH badInput
+    parseTest parseCharH "h"
+    parseTest parseCharH "not an h"
 ```
 
 ---
@@ -251,6 +262,9 @@ parseBasicTODO = fail "TODO"
 
 ### The parser monad
 
+The parser monad is a great example to help build the beginning intuation of
+monads as _programmable semicolons_. 
+
 At each step in our `do` notation we can:
 - consume part of our stream that matches some criteria
   - parse (part or all of) a data type
@@ -272,14 +286,6 @@ haskellCommentStart = symbol "--"
 
 todoFlag :: Parser Text
 todoFlag = symbol "TODO"
-
-parseBasicTODO :: Parser TodoEntry
-parseBasicTODO = do
-  _ <- try space
-  _ <- haskellCommentStart
-  _ <- todoFlag
-  body <- many anyChar
-  return TodoEntry body
 ```
 
 ---
@@ -338,15 +344,18 @@ main = do
 ``` 
 --- 
 
-### Let's have some metadata in our todos
+### Let's parse some metadata in our todos
 
 Let's say we want to be able to assign TODO's in our code
 
 ```haskell
-data AssignableTodoEntry = AssignableTodoEntry String (Maybe String) deriving (Show)
+data AssignableTodoEntry = AssignableTodoEntry 
+  String -- body
+  (Maybe String)  -- an assignee
+  deriving (Show)
 ```
 
-```
+```haskell
 -- TODO(assignee) some todo body text
 ```
 
@@ -389,9 +398,10 @@ expecting "--" or white space
 
 ---
 
-### Falling back
+### Alternatives
 
-Suppose we want to pasre TODO's or a comment when TODO parsing fails
+The notion of falling back to a parser when another fails is a common need when
+parsing. Suppose we want to parse TODO's *or* a plain comment when TODO parsing fails
 
 ```haskell
 data Comment = TodoEntry String | PlainComment String deriving (Show)
