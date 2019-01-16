@@ -54,11 +54,12 @@ parseTODO = do
   return $ AssignableTodoEntry body assignee
 
 main = do
+  parseTest singleLetterP "hi"
   -- parseTest parseBasicTODO " -- TODO here's some stuff we need to do!"
   -- parseTest parseBasicTODO "this should fail"
 
-  parseTest parseTODO " -- TODO(avi) here's some stuff we need to do!"
-  parseTest parseTODO " -- TODO here's some stuff we need to do!"
-  parseTest parseTODO "this should fail"
+  -- parseTest parseTODO " -- TODO(avi) here's some stuff we need to do!"
+  -- parseTest parseTODO " -- TODO here's some stuff we need to do!"
+  -- parseTest parseTODO "this should fail"
 
 

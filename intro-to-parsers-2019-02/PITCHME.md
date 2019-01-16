@@ -3,16 +3,26 @@
 
 ---
 
+### Goals
+
+- Develop an intuition for parsing in Haskell with beginner friendly examples
+  - Simple `do` notation style
+  - Avoid fancy ghc extensions, heavy operator use, etc
+
+---
+
 ### Contents
 
-- Traditional Approaches
-- Monadic Parsing, MegaParsec
-  - Library Overview
-  - Examples (simple Haskell to build up intuition)
+- Intro, traditional approaches
+- Monadic parsing, megaParsec
+  - Library overview
+  - Examples
 
 ---
 
 ### What is parsing?
+
+Parse: _analyze (a string or text) into logical syntactic components_
 
 Loosely:
 
@@ -172,15 +182,26 @@ type Parser = Parsec Void String
                      ^    ^
                      |    |
 Custom error component    Type of input (stream)
+
+myParser :: Parser MyType
 ```
 
 ---
 
-```haskell
-type Parser = Parsec Void String
+### The parser monad
 
-myParser :: Parser MyType
-```
+- The parser monad is a great example to help build the beginning intuation of
+monads as _programmable semicolons_. 
+
+- We start with a stream, and a cursor at the beginning of the stream.
+
+At each step in our `do` notation we can:
+- consume part of our stream that matches some criteria
+  - parse (part or all of) a data type
+  - discard it and continue
+- inspect our location in the stream without consuming it
+  - see `try`, `lookAhead`
+- fail
 
 ---
 
@@ -189,15 +210,16 @@ import           Data.Void            (Void)
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 
-/* Here is our parser definition. We will parse text, and have passed in Void for our custom errors, meaning
+-- Here is our parser definition. We will parse text, and have passed in Void for our custom errors, meaning
 we'll use the default */
 type Parser = Parsec Void String
 
 parseCharH :: Parser Char
-parseCharH  = char 'h'
+parseCharH = char 'h'
 
 main = do
     parseTest parseCharH "h"
+    parseTest parseCharH "hi"
     parseTest parseCharH "not an h"
 ```
 
@@ -205,6 +227,7 @@ main = do
 
 ```bash
 ❯❯❯ stack runghc test.hs
+'h'
 'h'
 1:1:
 unexpected 'n'
@@ -289,19 +312,6 @@ parseBasicTODO = fail "TODO"
 ```
 
 ---
-
-### The parser monad
-
-The parser monad is a great example to help build the beginning intuation of
-monads as _programmable semicolons_. 
-
-At each step in our `do` notation we can:
-- consume part of our stream that matches some criteria
-  - parse (part or all of) a data type
-  - discard it and continue
-- inspect our location in the stream without consuming it
-  - see `try`, `lookAhead`
-- fail
 
 ### A more detailed example: parse TODO's in code
 
@@ -433,6 +443,23 @@ expecting "--" or white space
 ### Alternatives
 
 The notion of falling back to a parser when another fails is a common need.
+Fortunately, our Parser type has an `Alternative` instance.
+
+```haskell
+type Parsec e s = ParsecT e s Identity
+
+instance (Ord e, Stream s) => Alternative (ParsecT e s m) where
+  empty  = mzero
+  (<|>)  = mplus
+  
+```
+
+```haskell
+(something_that_could_fail <|> another_try <|> default)
+```
+
+---
+
 Suppose we want to parse TODO's *or* a plain comment when TODO parsing fails
 
 ```haskell
@@ -460,12 +487,12 @@ parseComment = (try parseTODO) <|> parsePlainComment
 
 ### Wrapping up
 
-This approach to parsing:
+This approach to parsing gives us:
 
 - Powerful parsers that are highly composable
-- Type safe
-- Readable
-- Is easy to maintain
+- Type safety
+- Readability
+- Easier maintainence
 
 Reach for Haskell + megaparsec (or similar) the next time you have some parsing to do!
 
