@@ -1,4 +1,4 @@
-## Monadic Parsers for Imperative Programmers
+## Monadic Parsers for Everyone
 ### Avi Press
 
 ---
@@ -210,8 +210,9 @@ import           Data.Void            (Void)
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 
--- Here is our parser definition. We will parse text, and have passed in Void for our custom errors, meaning
-we'll use the default */
+-- Here is our parser definition. We will parse text, 
+-- and have passed in Void for our custom errors, meaning
+-- we'll use the default
 type Parser = Parsec Void String
 
 parseCharH :: Parser Char
@@ -226,13 +227,12 @@ main = do
 ---
 
 ```bash
-❯❯❯ stack runghc test.hs
+❯❯❯ stack runghc test1.hs
 'h'
 'h'
 1:1:
 unexpected 'n'
 expecting 'h'
-here
 ```
 
 ---
@@ -277,16 +277,16 @@ A foundational part of building the parser is deciding on how to handle whitespa
 define our lexeme handling
 
 ```
-Text.Megaparsec.Char.Lexer
+import qualified Text.Megaparsec.Char.Lexer as L
 ```
 
 ```haskell
 -- define our base symbol
 symbol    = L.symbol space
 
--- now that we have a symbol, we can easily write simple, composable, literal parsers 
--- that automatically consume whitespace after
--- for example:
+-- now that we have a symbol, we can easily write simple,
+-- composable, literal parsers that automatically 
+-- consume whitespace after for example:
 semicolon = symbol ";"
 hello = symbol "hello"
 parens    = between (symbol "(") (symbol ")")
@@ -294,38 +294,42 @@ parens    = between (symbol "(") (symbol ")")
 
 ---
 
+### A note about spaces and lexemes
+
+- By convention, we assume a lexeme _starts at the current position, and may have space following it._
+
+```
+parseTest hello "hello   " -- this works
+parseTest hello "   hello" -- this does not
+```
+
+---
+
+```
+❯❯❯ stack runghc test1.hs
+"hello"
+1:1:
+unexpected "   he"
+expecting "hello"
+```
+
+---
+
 ```haskell
 -- define our base symbol
 symbol    = L.symbol space
 
 -- lets parse our TODOs!
 
-haskellCommentStart :: Parser Text
+haskellCommentStart :: Parser String
 haskellCommentStart = symbol "--"
 
-todoFlag :: Parser Text
+todoFlag :: Parser String
 todoFlag = symbol "TODO"
 
 -- TODO our parser should be able to parse a line just like this!
 parseBasicTODO :: Parser TodoEntry
 parseBasicTODO = fail "TODO"
-```
-
----
-
-### A more detailed example: parse TODO's in code
-
-```haskell
--- define our base symbol
-symbol    = L.symbol space
-
--- lets parse our TODOs!
-
-haskellCommentStart :: Parser Text
-haskellCommentStart = symbol "--"
-
-todoFlag :: Parser Text
-todoFlag = symbol "TODO"
 ```
 
 ---
@@ -407,7 +411,7 @@ data AssignableTodoEntry = AssignableTodoEntry
 inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
 
-parseAssignee :: Parser [Char]
+parseAssignee :: Parser String
 parseAssignee = inParens (many $ noneOf [')', '('])
 
 parseTODO :: Parser AssignableTodoEntry
@@ -419,6 +423,10 @@ parseTODO = do
   body <- many anyChar
   return $ AssignableTodoEntry body assignee
 ```
+
+Note:
+
+- discuss the greediness of the parser in parens
 
 ---
 
@@ -463,7 +471,7 @@ instance (Ord e, Stream s) => Alternative (ParsecT e s m) where
 Suppose we want to parse TODO's *or* a plain comment when TODO parsing fails
 
 ```haskell
-data Comment = TodoEntry String | PlainComment String deriving (Show)
+data Comment = TodoEntry String (Maybe String) | PlainComment String deriving (Show)
 ```
 
 ---
@@ -485,6 +493,47 @@ parseComment = (try parseTODO) <|> parsePlainComment
 
 --- 
 
+```
+parseTest parseComment "-- TODO a parsed todo"
+parseTest parseComment "-- just a comment"
+```
+
+---
+
+### Debugging
+
+- Megaparsec exposes the `dbg` function which prints traces of what your parser
+  is doing. Note: this function was moved to `Text.Megaparsec.Debug` in megaparsec 7
+
+```haskell
+dbg
+:: (Stream s, ShowErrorComponent e, Show a)	 
+=> String	        -- Debugging label
+-> ParsecT e s m a	-- Parser to debug
+-> ParsecT e s m a	-- Parser that prints debugging messages
+```
+
+---
+
+```haskell
+-- dbg "some label" yourParser
+
+λ> parseTest (dbg "parseComment" parseComment) "-- TODO(avi) a parsed, assigned todo"
+
+parseComment> IN: "-- TODO(avi) a parsed, assigned todo"
+parseComment> MATCH (COK): "-- TODO(avi) a parsed, assigned todo"
+parseComment> VALUE: TodoEntry "a parsed, assigned todo" (Just "avi")
+
+TodoEntry "a parsed, assigned todo" (Just "avi")
+```
+
+- COK—"consumed OK". The parser consumed input and succeeded.
+- CERR—"consumed error". The parser consumed input and failed.
+- EOK—"empty OK". The parser succeeded without consuming input.
+- EERR—"empty error". The parser failed without consuming input.
+
+---
+
 ### Wrapping up
 
 This approach to parsing gives us:
@@ -500,10 +549,10 @@ Reach for Haskell + megaparsec (or similar) the next time you have some parsing 
 
 # Thank you!
 
-[Slides](https://github.com/aviaviavi/talks/intro-pasers)
-[Toodles](https://github.com/aviaviavi/toodles)
+- [Slides](https://github.com/aviaviavi/talks/intro-pasers)
+- [Toodles](https://github.com/aviaviavi/toodles)
 
 #### Avi Press
-- [Website](https://avi.press)
+- [https://avi.press](https://avi.press)
 - [Twitter](https://twitter.com/avi_press)
 - [Github](https://github.com/aviaviavi)

@@ -41,7 +41,7 @@ data AssignableTodoEntry = AssignableTodoEntry
 inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
 
-parseAssignee :: Parser [Char]
+parseAssignee :: Parser String
 parseAssignee = inParens (many $ noneOf [')', '('])
 
 parseTODO :: Parser AssignableTodoEntry
@@ -53,13 +53,22 @@ parseTODO = do
   body <- many anyChar
   return $ AssignableTodoEntry body assignee
 
+hello = symbol "hello"
+
+greedyParseAssignee = inParens (many anyChar)
+
 main = do
-  parseTest singleLetterP "hi"
+  -- parseTest singleLetterP "hi"
+  -- parseTest hello "hello   " -- this works
+  -- parseTest hello "   hello" -- this does not
   -- parseTest parseBasicTODO " -- TODO here's some stuff we need to do!"
   -- parseTest parseBasicTODO "this should fail"
 
   -- parseTest parseTODO " -- TODO(avi) here's some stuff we need to do!"
   -- parseTest parseTODO " -- TODO here's some stuff we need to do!"
   -- parseTest parseTODO "this should fail"
+
+  parseTest parseTODO "-- TODO(avi) a parsed, assigned todo"
+  parseTest parseTODO "-- just a comment"
 
 
