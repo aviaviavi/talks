@@ -7,10 +7,10 @@
 
 Note:
 
-- I'm a software engineer at a local startup, Fraction
-- Learning Haskell has been a long tough journey
-- Learning parsing was very difficult, so this talk aims to explain things in
-  the way that made things click for me personally
+- I'm a software engineer at a local startup, Fraction, a platform for digital offers on Google Pay and Apple Pay. 
+- Learning Haskell has been generally tough for me.
+- Parsing, an often bragged about application of Haskell, was no exception, I had a hard time.
+- This talk aims to give an approachable introduction to how I finally got comfortable with it.
 - Please ask questions!
 
 ---
