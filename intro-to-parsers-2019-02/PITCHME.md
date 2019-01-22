@@ -34,7 +34,7 @@ Note:
 - Loosely:
 
 ```
-(String | Text | Bytes | YourUnstructuredDataStream) -> YourDataType`
+(String | Text | Bytes | YourUnstructuredDataStream) -> YourDataType
 ```
 
 ---
@@ -194,11 +194,33 @@ Regular expressions
 ^----- Stream  ------
 ```
 
+---
+
+### Let's jump into some code!
+
+```haskell
+-- We generally start off by defining our Parser type synonym
+type Parser = Parsec Void String
+                     ^    ^
+                     |    |
+Custom error component    Type of input (stream)
+
+myParser :: Parser MyType
+```
 
 ---
 
-### The parser monad
+### MonadParsec
 
+```haskell
+type Parsec e s = ParsecT e s Identity
+
+data ParsecT e s m a
+
+-- Instances
+(Ord e, Stream s) => MonadParsec e s (ParsecT e s m)
+...
+```
 
 - We start with a stream, and a cursor at the beginning of the stream.
 - monad handles some book keeping at each step
@@ -214,15 +236,17 @@ monads as _programmable semicolons_.
   - inspect our location in the stream without consuming it
     - see `try`, `lookAhead`
   - fail
+  
+Note:
+
+- There are other functions in the complete MonadParsec definition, but these
+  are the useful ones to start out and will take you far
 
 ---
 
 - Being able to have our parsers interact with any other monadic effects in a
   type safe way is a huge gain from thinking about our parsers this way
 
-```haskell
-type Parsec e s = ParsecT e s Identity
-```
 
 Note: 
 - We pass in `Identity` for the underlying monad at the end of the
@@ -230,8 +254,6 @@ signature. It could easily be another arbitrary monad stack, giving you type
 safe effects. Try that with regular expressions!
 
 ---
-
-### Let's jump into some code!
 
 ```haskell
 -- We generally start off by defining our Parser type synonym
@@ -242,6 +264,12 @@ Custom error component    Type of input (stream)
 
 myParser :: Parser MyType
 ```
+
+Note:
+
+- So again just as a reminder, we're going to start off by defining our Parser
+  synonym, and with that, we can define our top level parser function and work
+  down
 
 ---
 
