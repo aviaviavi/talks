@@ -130,14 +130,17 @@ Plain old property checking of strings
 
 ### What we're used to
 
-- Regular expressions
-  - Pros:
-    - Declarative
-    - Quite powerful
-  - Cons:
-    - Empirically a nightmare
-    - Difficult to read, harder to debug
-    - Error handling quickly becomes complex, difficult or impossible
+Regular expressions
+
+@ul
+- Pros:
+  + Declarative
+  + Quite powerful
+- Cons:
+  + Empirically a nightmare
+  + Difficult to read, harder to debug
+  + Error handling quickly becomes complex, difficult or impossible
+@ulend
     
 ---
     
