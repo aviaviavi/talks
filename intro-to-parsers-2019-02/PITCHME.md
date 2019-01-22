@@ -115,19 +115,20 @@ This is fine, but quickly gets complicated and very challenging to read
 ### What we're used to
 
 - Plain old property checking of strings
+  @ul
   - Pros:
-    - Parse however you want
-    - As powerful as you care to make it
+    + Parse however you want
+    + As powerful as you care to make it
   - Cons:
-    - Ad-hoc property checking functions are fine until you need to generalize
-    - Often ends up being much more code than a simple regex
-    - Eventually end up reinventing the wheel
+    + Ad-hoc property checking functions are fine until you need to generalize
+    + Often ends up being much more code than a simple regex
+    + Eventually end up reinventing the wheel
+  @ulend
 
 ---
 
 ### What we're used to
 
-@ul
 - Regular expressions
   - Pros:
     - Declarative
@@ -136,7 +137,6 @@ This is fine, but quickly gets complicated and very challenging to read
     - Empirically a nightmare
     - Difficult to read, harder to debug
     - Error handling quickly becomes complex, difficult or impossible
-@ulend
     
 ---
     
