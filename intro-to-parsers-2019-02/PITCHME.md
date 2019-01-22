@@ -223,9 +223,9 @@ data ParsecT e s m a
 ```
 
 - We start with a stream, and a cursor at the beginning of the stream.
-- monad handles some book keeping at each step
-  - The parser monad is a great example to help build the beginning intuition of
-monads as _programmable semicolons_. 
+- The MonadParsec handles some book keeping at each step
+  - This monad is very concrete and can be great for building an intuition of
+    how to work with them in general
 
 ---
 
@@ -246,7 +246,6 @@ Note:
 
 - Being able to have our parsers interact with any other monadic effects in a
   type safe way is a huge gain from thinking about our parsers this way
-
 
 Note: 
 - We pass in `Identity` for the underlying monad at the end of the
@@ -322,7 +321,8 @@ data TodoEntry = TodoEntry String deriving (Show)
 Offers some basic building blocks for parsing single characters
 
 ```haskell
-anyChar :: MonadParsec e s m => m (Token s) -- (NOTE: renamed to `anySingle` in megaparsec 7)
+ -- (NOTE: renamed to `anySingle` in megaparsec 7)
+anyChar :: MonadParsec e s m => m (Token s)
 digitChar :: (MonadParsec e s m, Token s ~ Char) => m (Token s)
 space :: (MonadParsec e s m, Token s ~ Char) => m ()
 ```
@@ -609,8 +609,9 @@ Reach for Haskell + megaparsec (or similar) the next time you have some parsing 
 # Thank you!
 #### Avi Press
 
-- [Slides](https://github.com/aviaviavi/talks/intro-pasers)
-- [Toodles](https://github.com/aviaviavi/toodles)
+- Talk
+  - [Slides](https://github.com/aviaviavi/talks/intro-pasers)
+  - [Toodles](https://github.com/aviaviavi/toodles)
 - [https://avi.press](https://avi.press)
 - [Twitter](https://twitter.com/avi_press)
 - [Github](https://github.com/aviaviavi)
