@@ -18,11 +18,9 @@
 
 ### What is parsing?
 
-Parse: _analyze (a string or text) into logical syntactic components_
+- Parse: _analyze (a string or text) into logical syntactic components_
 
-Loosely:
-
-(String | Text | Bytes | YourUnstructuredDataStream) -> YourDataType
+- Loosely: `(String | Text | Bytes | YourUnstructuredDataStream) -> YourDataType`
 
 ---
 
@@ -129,14 +127,20 @@ This is fine, but quickly gets complicated and very challenging to read
 
 ### What we're used to
 
+@ul
 - Regular expressions
+  @ul
   - Pros:
     - Declarative
     - Quite powerful
+  @ulend
+  @ul
   - Cons:
     - Empirically a nightmare
     - Difficult to read, harder to debug
     - Error handling quickly becomes complex, difficult or impossible
+  @ulend
+@ulend
     
 ---
     
@@ -193,7 +197,7 @@ monads as _programmable semicolons_.
 
 ---
 
--At each step in our `do` notation we can:
+- At each step in our `do` notation we can:
   - consume part of our stream that matches some criteria
     - parse (part or all of) a data type
     - discard it and continue
@@ -208,9 +212,8 @@ import           Data.Void            (Void)
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 
--- Here is our parser definition. We will parse text, 
--- and have passed in Void for our custom errors, meaning
--- we'll use the default
+-- We will parse text, and have passed in Void for our
+-- custom errors, meaning we'll use the default
 type Parser = Parsec Void String
 
 parseCharH :: Parser Char
@@ -237,7 +240,7 @@ expecting 'h'
 
 ### A more detailed example: parse TODO's in code
 
-A real world use-case: a tool to manage TODO's in a codebase. (See the actual 
+- A real world use-case: a tool to manage TODO's in a codebase. (See the actual 
 implementation of [Toodles here](https://github.com/aviaviavi/toodles))
 
 ```haskell
@@ -253,7 +256,6 @@ type Parser = Parsec Void String
 ---
 
 ```haskell
-
 -- a data structure to parse
 data TodoEntry = TodoEntry String deriving (Show)
 ```
@@ -297,6 +299,8 @@ parens    = between (symbol "(") (symbol ")")
 - By convention, we assume a lexeme _starts at the current position, and may have space following it._
 
 ```
+hello = symbol "hello"
+
 parseTest hello "hello   " -- this works
 parseTest hello "   hello" -- this does not
 ```
