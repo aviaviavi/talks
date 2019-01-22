@@ -627,6 +627,7 @@ Reach for Haskell + megaparsec (or similar) the next time you have some parsing 
 - Talk
   - [Slides](https://github.com/aviaviavi/talks/intro-pasers)
   - [Toodles](https://github.com/aviaviavi/toodles)
-- [https://avi.press](https://avi.press)
-- [Twitter](https://twitter.com/avi_press)
-- [Github](https://github.com/aviaviavi)
+- Follow Me!
+  - [https://avi.press](https://avi.press)
+  - [Twitter](https://twitter.com/avi_press)
+  - [Github](https://github.com/aviaviavi)
