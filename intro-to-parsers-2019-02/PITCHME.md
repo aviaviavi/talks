@@ -191,13 +191,15 @@ monads as _programmable semicolons_.
 
 - We start with a stream, and a cursor at the beginning of the stream.
 
-At each step in our `do` notation we can:
-- consume part of our stream that matches some criteria
-  - parse (part or all of) a data type
-  - discard it and continue
-- inspect our location in the stream without consuming it
-  - see `try`, `lookAhead`
-- fail
+---
+
+-At each step in our `do` notation we can:
+  - consume part of our stream that matches some criteria
+    - parse (part or all of) a data type
+    - discard it and continue
+  - inspect our location in the stream without consuming it
+    - see `try`, `lookAhead`
+  - fail
 
 ---
 
