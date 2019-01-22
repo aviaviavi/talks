@@ -222,6 +222,20 @@ monads as _programmable semicolons_.
 
 ---
 
+- Being able to have our parsers interact with any other monadic effects in a
+  type safe way is a huge gain from thinking about our parsers this way
+
+```haskell
+type Parsec e s = ParsecT e s Identity
+```
+
+Note: 
+- We pass in `Identity` for the underlying monad at the end of the
+signature. It could easily be another arbitrary monad stack, giving you type
+safe effects. Try that with regular expressions!
+
+---
+
 ```haskell
 import           Data.Void            (Void)
 import           Text.Megaparsec
