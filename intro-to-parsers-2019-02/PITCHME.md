@@ -129,17 +129,13 @@ This is fine, but quickly gets complicated and very challenging to read
 
 @ul
 - Regular expressions
-  @ul
   - Pros:
     - Declarative
     - Quite powerful
-  @ulend
-  @ul
   - Cons:
     - Empirically a nightmare
     - Difficult to read, harder to debug
     - Error handling quickly becomes complex, difficult or impossible
-  @ulend
 @ulend
     
 ---
