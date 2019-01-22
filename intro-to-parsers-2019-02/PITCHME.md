@@ -53,6 +53,10 @@ Sun Feb 24 2019 00:00:00 GMT-0800 (Pacific Standard Time)
 For simple things, just checking a few conditions directly works fine. For
 instance, grabbing content between brackets:
 
+```
+[parse_this]
+```
+
 ```haskell
 s :: Text
 
@@ -60,6 +64,10 @@ s :: Text
 if head s == "[" && last s == "]"
 then Text.replace "]" "" (Text.replace "[" "" s)
 ``` 
+
+Note:
+
+So, what's the naive approach to this?
 
 ---
 
@@ -186,19 +194,6 @@ Regular expressions
 ^----- Stream  ------
 ```
 
----
-
-### Let's jump into some code!
-
-```haskell
--- We generally start off by defining our Parser type synonym
-type Parser = Parsec Void String
-                     ^    ^
-                     |    |
-Custom error component    Type of input (stream)
-
-myParser :: Parser MyType
-```
 
 ---
 
@@ -206,7 +201,7 @@ myParser :: Parser MyType
 
 
 - We start with a stream, and a cursor at the beginning of the stream.
-- Each step in the monad handles some book keeping for
+- monad handles some book keeping at each step
   - The parser monad is a great example to help build the beginning intuition of
 monads as _programmable semicolons_. 
 
@@ -236,12 +231,26 @@ safe effects. Try that with regular expressions!
 
 ---
 
+### Let's jump into some code!
+
+```haskell
+-- We generally start off by defining our Parser type synonym
+type Parser = Parsec Void String
+                     ^    ^
+                     |    |
+Custom error component    Type of input (stream)
+
+myParser :: Parser MyType
+```
+
+---
+
 ```haskell
 import           Data.Void            (Void)
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 
--- We will parse text, and have passed in Void for our
+-- We will parse Strings, and have passed in Void for our
 -- custom errors, meaning we'll use the default
 type Parser = Parsec Void String
 
@@ -272,16 +281,6 @@ expecting 'h'
 - A real world use-case: a tool to manage TODO's in a codebase. (See the actual 
 implementation of [Toodles here](https://github.com/aviaviavi/toodles))
 
-```haskell
-import           Data.Void            (Void)
-import           Text.Megaparsec
-import           Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer as L
-
--- Again, we'll parse strings
-type Parser = Parsec Void String
-```
-
 ---
 
 ```haskell
@@ -302,8 +301,9 @@ space :: (MonadParsec e s m, Token s ~ Char) => m ()
 
 ---
 
-A foundational part of building the parser is deciding on how to handle whitespace, so we can
-define our lexeme handling
+- A foundational part of building the parser is deciding on how to separate our lexemes, ie the whitespace.
+- By convention, we assume a lexeme _starts at the head of the stream, and any following whitespace._
+
 
 ```
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -329,15 +329,13 @@ Note:
 
 ---
 
-### A note about spaces and lexemes
-
-- By convention, we assume a lexeme _starts at the current position, and may have space following it._
+### Lexemes and spaces
 
 ```
 hello = symbol "hello"
 
-parseTest hello "hello   " -- this works
-parseTest hello "   hello" -- this does not
+parseTest hello "hello hello " -- this works
+parseTest hello "   hello hello" -- this does not
 ```
 
 ---
