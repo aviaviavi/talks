@@ -46,5 +46,5 @@ parseComment = (try parseTODO) <|> parsePlainComment
 
 main = do
   parseTest parseComment "-- TODO a parsed todo"
-  parseTest (dbg "parseComment" parseComment) "-- TODO(avi) a parsed, assigned todo"
+  parseTest parseComment "-- TODO(avi) a parsed, assigned todo"
   parseTest parseComment "-- just a comment"

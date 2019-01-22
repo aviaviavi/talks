@@ -558,6 +558,21 @@ parseComment = (try parseTODO) <|> parsePlainComment
 
 ---
 
+```haskell
+main = do
+  parseTest parseComment "-- TODO a parsed todo"
+  parseTest parseComment "-- TODO(avi) a parsed, assigned todo"
+  parseTest parseComment "-- just a comment"
+```
+
+```
+❯❯❯ stack runghc alternative.hs
+TodoEntry "a parsed todo" Nothing
+TodoEntry "a parsed, assigned todo" (Just "avi")
+PlainComment "just a comment"
+```
+---
+
 ### Debugging
 
 - It can be tough to figure out why your parsers are misbehaving
