@@ -149,17 +149,16 @@ Regular expressions
     
 ### Haskell's solution: parser combinators
 
-Tiny little parsing functions that you can use to build up your own parsers
-
-For this talk, we'll be using the MegaParsec library.
+- Small parsing functions that you can use to build up your own parsers
+- For this talk, we'll be using the MegaParsec library.
 
 ---
 
 ### Some terminology
 
-- Stream: The sequence of information we're trying to parse
-- Token: A single element of the stream
-- Lexeme: A logical collection of tokens, like a word and the following spaces
+- *Stream*: The sequence of information we're trying to parse
+- *Token*: A single element of the stream
+- *Lexeme*: A logical collection of tokens, like a word and the following spaces
 
 ---
 
@@ -523,6 +522,8 @@ parseComment> VALUE: TodoEntry "a parsed, assigned todo" (Just "avi")
 
 TodoEntry "a parsed, assigned todo" (Just "avi")
 ```
+
+---
 
 - COK—"consumed OK". The parser consumed input and succeeded.
 - CERR—"consumed error". The parser consumed input and failed.
