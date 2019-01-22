@@ -3,7 +3,7 @@
 
 ---
 
-### Intro
+### Introduction
 
 ---
 
@@ -19,8 +19,11 @@
 ### What is parsing?
 
 - Parse: _analyze (a string or text) into logical syntactic components_
+- Loosely:
 
-- Loosely: `(String | Text | Bytes | YourUnstructuredDataStream) -> YourDataType`
+```
+(String | Text | Bytes | YourUnstructuredDataStream) -> YourDataType`
+```
 
 ---
 
