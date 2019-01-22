@@ -5,6 +5,14 @@
 
 ### Introduction
 
+Note:
+
+- I'm a software engineer at a local startup, Fraction
+- Learning Haskell has been a long tough journey
+- Learning parsing was very difficult, so this talk aims to explain things in
+  the way that made things click for me personally
+- Please ask questions!
+
 ---
 
 ### Contents
@@ -13,6 +21,10 @@
 - Develop an intuition for parsing in Haskell: monadic parsing, MegaParsec
   - Library overview
   - Examples
+  
+Note:
+
+- Focusing on easy Haskell because that's what was easiest for me to understand.
 
 ---
 
