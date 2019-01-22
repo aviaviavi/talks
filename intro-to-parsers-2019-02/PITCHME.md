@@ -3,18 +3,14 @@
 
 ---
 
-### Goals
-
-- Develop an intuition for parsing in Haskell with beginner friendly examples
-  - Simple `do` notation style
-  - Avoid fancy ghc extensions, heavy operator use, etc
+### Intro
 
 ---
 
 ### Contents
 
 - Intro, traditional approaches
-- Monadic parsing, megaParsec
+- Develop an intuition for parsing in Haskell: monadic parsing, MegaParsec
   - Library overview
   - Examples
 
@@ -491,26 +487,18 @@ parseComment :: Parser Comment
 parseComment = (try parseTODO) <|> parsePlainComment
 ```
 
---- 
-
-```
-parseTest parseComment "-- TODO a parsed todo"
-parseTest parseComment "-- just a comment"
-```
-
 ---
 
 ### Debugging
 
-- Megaparsec exposes the `dbg` function which prints traces of what your parser
-  is doing. Note: this function was moved to `Text.Megaparsec.Debug` in megaparsec 7
+- It can be tough to figure out why your parsers are misbehaving
 
-```haskell
+```
 dbg
-:: (Stream s, ShowErrorComponent e, Show a)	 
-=> String	        -- Debugging label
--> ParsecT e s m a	-- Parser to debug
--> ParsecT e s m a	-- Parser that prints debugging messages
+:: (Stream s, ShowToken (Token s), ShowErrorComponent e, Show a)	 
+=> String          -- Debugging label
+-> ParsecT e s m a -- Parser to debug
+-> ParsecT e s m a -- Parser that prints debugging messages
 ```
 
 ---
@@ -548,11 +536,10 @@ Reach for Haskell + megaparsec (or similar) the next time you have some parsing 
 ---
 
 # Thank you!
+#### Avi Press
 
 - [Slides](https://github.com/aviaviavi/talks/intro-pasers)
 - [Toodles](https://github.com/aviaviavi/toodles)
-
-#### Avi Press
 - [https://avi.press](https://avi.press)
 - [Twitter](https://twitter.com/avi_press)
 - [Github](https://github.com/aviaviavi)
