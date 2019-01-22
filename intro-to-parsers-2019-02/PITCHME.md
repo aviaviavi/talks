@@ -136,8 +136,8 @@ Plain old property checking of strings
   + Parse however you want
   + As powerful as you care to make it
 - Cons:
-  + Ad-hoc property checking functions are fine until you need to generalize
   + Often ends up being much more code than a simple regex
+  + Ad-hoc property checking functions are fine until you need to generalize
   + Eventually end up reinventing the wheel
 @ulend
 
@@ -204,10 +204,11 @@ myParser :: Parser MyType
 
 ### The parser monad
 
-- The parser monad is a great example to help build the beginning intuation of
-monads as _programmable semicolons_. 
 
 - We start with a stream, and a cursor at the beginning of the stream.
+- Each step in the monad handles some book keeping for
+  - The parser monad is a great example to help build the beginning intuition of
+monads as _programmable semicolons_. 
 
 ---
 
@@ -296,7 +297,7 @@ import qualified Text.Megaparsec.Char.Lexer as L
 
 ```haskell
 -- define our base symbol
-symbol    = L.symbol space
+symbol = L.symbol space
 
 -- now that we have a symbol, we can easily write simple,
 -- composable, literal parsers that automatically 
@@ -305,6 +306,12 @@ semicolon = symbol ";"
 hello = symbol "hello"
 parens    = between (symbol "(") (symbol ")")
 ```
+
+Note:
+
+- symbol is a helper function for a specific kind of lexeme: parsing verbatim strings
+- it's a special case of `lexeme`, which just has a more general type signature
+- between is part of parser-combinators, a dependency 
 
 ---
 
@@ -333,7 +340,7 @@ expecting "hello"
 
 ```haskell
 -- define our base symbol
-symbol    = L.symbol space
+symbol = L.symbol space
 
 -- lets parse our TODOs!
 
