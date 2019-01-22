@@ -381,7 +381,7 @@ parseBasicTODO = do
   -- any characters after that gives us the body
   body <- many anyChar
   -- all done!
-  return TodoEntry body
+  return $ TodoEntry body
 ```
 
 ---
@@ -443,11 +443,13 @@ data AssignableTodoEntry = AssignableTodoEntry
 ---
 
 ```haskell
+lexeme = L.lexeme space
+
 inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
 
 parseAssignee :: Parser String
-parseAssignee = inParens (many $ noneOf [')', '('])
+parseAssignee = inParens (lexeme $ many $ noneOf [')', '('])
 
 parseTODO :: Parser AssignableTodoEntry
 parseTODO = do
@@ -474,7 +476,7 @@ main = do
 
 ```
 ❯❯❯ stack runghc test1.hs
-AssignableTodoEntry "here's some stuff we need to do!" (Just "a name")
+AssignableTodoEntry "here's some stuff we need to do!" (Just "avi")
 AssignableTodoEntry "here's some stuff we need to do!" Nothing
 1:1:
 unexpected "th"

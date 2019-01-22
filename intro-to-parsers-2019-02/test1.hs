@@ -12,7 +12,8 @@ goodInput = "h"
 badInput = "not an h"
 
 -- define our base symbol
-symbol    = L.symbol space
+lexeme = L.lexeme space
+symbol = L.symbol space
 
 -- lets parse our TODOs!
 haskellCommentStart :: Parser String
@@ -42,7 +43,7 @@ inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
 
 parseAssignee :: Parser String
-parseAssignee = inParens (many $ noneOf [')', '('])
+parseAssignee = inParens (lexeme $ many $ (noneOf [')', '(', ' ']))
 
 parseTODO :: Parser AssignableTodoEntry
 parseTODO = do
@@ -64,11 +65,11 @@ main = do
   -- parseTest parseBasicTODO " -- TODO here's some stuff we need to do!"
   -- parseTest parseBasicTODO "this should fail"
 
-  -- parseTest parseTODO " -- TODO(avi) here's some stuff we need to do!"
+  parseTest parseTODO " -- TODO(avi     ) here's some stuff we need to do!"
   -- parseTest parseTODO " -- TODO here's some stuff we need to do!"
   -- parseTest parseTODO "this should fail"
 
-  parseTest parseTODO "-- TODO(avi) a parsed, assigned todo"
-  parseTest parseTODO "-- just a comment"
+  -- parseTest parseTODO "-- TODO(avi) a parsed, assigned todo"
+  -- parseTest parseTODO "-- just a comment"
 
 
