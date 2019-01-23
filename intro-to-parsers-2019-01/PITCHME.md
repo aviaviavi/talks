@@ -73,18 +73,22 @@ So, what's the naive approach to this?
 
 ### What we're used to
 
+@css[fragment](
 - For simple things, just checking a few conditions directly works fine. For
-instance, grabbing content between brackets:
+instance, grabbing content between brackets:)
 
+@css[fragment](
 ```haskell
 s :: Text
 
 ... 
 if head s == "[" && last s == "]"
-then Text.replace "]" "" (Text.replace "[" "" s)
-``` 
+then Text.replace "]" "" (Text.replace "[" "" s))
+```)
 
-- What about spaces?
+
+@css[fragment](
+- What about spaces?)
 
 ```
 "[ we_want_to_parse_this_too      ]"
