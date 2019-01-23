@@ -50,7 +50,7 @@ Sun Feb 24 2019 00:00:00 GMT-0800 (Pacific Standard Time)
 
 ### What we're used to
 
-For simple things, just checking a few conditions directly works fine. For
+- For simple things, just checking a few conditions directly works fine. For
 instance, grabbing content between brackets:
 
 ```
@@ -73,7 +73,7 @@ So, what's the naive approach to this?
 
 ### What we're used to
 
-For simple things, just checking a few conditions directly works fine. For
+- For simple things, just checking a few conditions directly works fine. For
 instance, grabbing content between brackets:
 
 ```haskell
@@ -84,7 +84,7 @@ if head s == "[" && last s == "]"
 then Text.replace "]" "" (Text.replace "[" "" s)
 ``` 
 
-What about spaces?
+- What about spaces?
 
 ```
 "[ we_want_to_parse_this_too      ]"
@@ -94,39 +94,39 @@ What about spaces?
 
 ### What we're used to
 
-What about spaces?
+- What about spaces?
 
 ```
 "[ we_want_to_parse_this_too      ]"
 ```
 
 
-It's often compelling to reach for a regex
+- It's often compelling to reach for a regex
 
 ```
 \[\s*(\S+)\s*\]
 ```
 
-This is fine, but quickly gets complicated and very challenging to read
+- This is fine, but quickly gets complicated and very challenging to read
 
 --- 
 
 ### What we're used to
 
-What about spaces?
+- What about spaces?
 
 ```
 "[ we_want_to_parse_this_too      ]"
 ```
 
 
-It's often compelling to reach for a regex
+- It's often compelling to reach for a regex
 
 ```
 \[\s*(\S+)\s*\]
 ```
 
-This is fine, but quickly gets complicated and very challenging to read
+- This is fine, but quickly gets complicated and very challenging to read
 
 ```
 # a regex for parsing dates, good luck editing this after a year passes!
