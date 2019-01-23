@@ -644,12 +644,12 @@ Reach for Haskell + megaparsec (or similar) the next time you have some parsing 
 
 ---
 
-# Thank you!
+# Thanks!
 #### Avi Press
 
 - Talk
-  - [Slides](https://github.com/aviaviavi/talks/intro-pasers)
-  - [Toodles](https://github.com/aviaviavi/toodles)
+  - [Slides](https://gitpitch.com/aviaviavi/talks?p=intro-to-parsers-2019-01)
+  - [Toodles Source](https://github.com/aviaviavi/toodles)
 - Follow Me!
   - [https://avi.press](https://avi.press)
   - [Twitter](https://twitter.com/avi_press)
