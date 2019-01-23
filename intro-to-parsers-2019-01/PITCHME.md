@@ -50,8 +50,9 @@ Sun Feb 24 2019 00:00:00 GMT-0800 (Pacific Standard Time)
 
 ### What we're used to
 
+@css[fragment](
 - For simple things, just checking a few conditions directly works fine. For
-instance, grabbing content between brackets:
+instance, grabbing content between brackets:)
 
 ```
 [parse_this]
@@ -84,7 +85,6 @@ if head s == "[" && last s == "]"
 then Text.replace "]" "" (Text.replace "[" "" s))
 ```
 
-
 - What about spaces?
 
 ```
@@ -100,7 +100,6 @@ then Text.replace "]" "" (Text.replace "[" "" s))
 ```
 "[ we_want_to_parse_this_too      ]"
 ```
-
 
 - It's often compelling to reach for a regex
 
@@ -168,7 +167,7 @@ Regular expressions
     
 ---
     
-### Haskell's solution
+### Haskell's solution:
 #### Monadic parsing and parser combinators
 
 - Small parsing functions and powerful ways to combine them
@@ -329,6 +328,7 @@ data TodoEntry = TodoEntry String deriving (Show)
 ```
 
 ---
+
 `Text.Megaparsec.Char`
 
 Offers some basic building blocks for parsing single characters
