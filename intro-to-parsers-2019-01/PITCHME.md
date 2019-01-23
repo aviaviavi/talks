@@ -50,9 +50,7 @@ Sun Feb 24 2019 00:00:00 GMT-0800 (Pacific Standard Time)
 
 ### What we're used to
 
-@css[fragment](
-- For simple things, just checking a few conditions directly works fine. For
-instance, grabbing content between brackets:)
+@css[fragment](- For simple things, just checking a few conditions directly works fine. For instance, grabbing content between brackets)
 
 ```
 [parse_this]
