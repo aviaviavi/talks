@@ -567,6 +567,13 @@ parsePlainComment = do
   
 -- same implenation as before, just an edited type signature
 parseTODO :: Parser Comment
+parseTODO = do
+  _ <- try space
+  _ <- haskellCommentStart
+  _ <- todoFlag
+  assignee <- optional parseAssignee
+  body <- many anyChar
+  return $ TodoEntry body assignee
 
 parseComment :: Parser Comment
 parseComment = (try parseTODO) <|> parsePlainComment
