@@ -1,9 +1,9 @@
-## Monadic Parsers for Everyone
+## Parsing in Haskell
 ### Avi Press
 
 ---
 
-### Introduction
+# Introduction
 
 Note:
 
@@ -30,11 +30,11 @@ Note:
 
 ### What is parsing?
 
-- Parse: _analyze (a string or text) into logical syntactic components_
+- *Parse*: _analyze (a string or text) into logical syntactic components_
 - Loosely:
 
 ```
-(String | Text | Bytes | YourUnstructuredDataStream) -> YourDataType
+(String | Text | Bytes | Similar) -> YourDataType
 ```
 
 ---
@@ -167,9 +167,10 @@ Regular expressions
     
 ---
     
-### Haskell's solution: parser combinators
+### Haskell's solution
+#### Monadic parsing and parser combinators
 
-- Small parsing functions that you can use to build up your own parsers
+- Small parsing functions and powerful ways to combine them
 - For this talk, we'll be using the MegaParsec library.
 
 ---
