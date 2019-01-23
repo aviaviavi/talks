@@ -3,7 +3,7 @@
 
 ---
 
-# Introduction
+### Introduction
 
 Note:
 
@@ -209,6 +209,11 @@ Custom error component    Type of input (stream)
 myParser :: Parser MyType
 ```
 
+Note:
+
+- The first thing to define is what we take in, what we will return when
+something goes wrong. Then we can parse whatever types we want to throw at it
+
 ---
 
 ### MonadParsec
@@ -225,8 +230,14 @@ data ParsecT e s m a
 
 - We start with a stream, and a cursor at the beginning of the stream.
 - The MonadParsec handles some book keeping at each step
-  - This monad is very concrete and can be great for building an intuition of
-    how to work with them in general
+  - This concretely useful monad can be helpful for building an intution for
+    working with monads in general
+    
+Note:
+
+- The parsec alias we make is an alias of a data type that has an instance of
+MonadParsec, a monad that gives all the plumbing to easily write powerful
+parsers
 
 ---
 
@@ -339,22 +350,20 @@ import qualified Text.Megaparsec.Char.Lexer as L
 ```
 
 ```haskell
--- define our base symbol
+-- define our lexeme, in this case L.symbol, for parsing verbatim strings
 symbol = L.symbol space
 
--- now that we have a symbol, we can easily write simple,
--- composable, literal parsers that automatically 
--- consume whitespace after for example:
+-
 semicolon = symbol ";"
 hello = symbol "hello"
-parens    = between (symbol "(") (symbol ")")
+inParens = between (symbol "(") (symbol ")")
 ```
 
 Note:
 
 - symbol is a helper function for a specific kind of lexeme: parsing verbatim strings
-- it's a special case of `lexeme`, which just has a more general type signature
-- between is part of parser-combinators, a dependency 
+- it's a special case of L's `lexeme` function, which just has a more general type signature. It takes an arbitrary parser rather than just a string
+- `between` is part of parser-combinators, a dependency 
 
 ---
 
@@ -363,8 +372,10 @@ Note:
 ```
 hello = symbol "hello"
 
-parseTest hello "hello hello " -- this works
-parseTest hello "   hello hello" -- this does not
+-- this works
+parseTest hello "hello hello "
+-- this does not
+parseTest hello "   hello hello"
 ```
 
 ---
@@ -395,6 +406,10 @@ todoFlag = symbol "TODO"
 parseBasicTODO :: Parser TodoEntry
 parseBasicTODO = fail "TODO"
 ```
+
+Note:
+
+- So lets get back to our Todo's
 
 ---
 
@@ -478,7 +493,7 @@ inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
 
 parseAssignee :: Parser String
-parseAssignee = inParens (lexeme $ many $ noneOf [')', '('])
+parseAssignee = inParens . lexeme . many $ noneOf [')', '(']
 
 parseTODO :: Parser AssignableTodoEntry
 parseTODO = do

@@ -43,7 +43,7 @@ inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
 
 parseAssignee :: Parser String
-parseAssignee = inParens (lexeme $ many $ (noneOf [')', '(', ' ']))
+parseAssignee = inParens (lexeme . many $ (noneOf [')', '(', ' ']))
 
 parseTODO :: Parser AssignableTodoEntry
 parseTODO = do
