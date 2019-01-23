@@ -52,10 +52,13 @@ Sun Feb 24 2019 00:00:00 GMT-0800 (Pacific Standard Time)
 
 @css[fragment](- For simple things, just checking a few conditions directly works fine. For instance, grabbing content between brackets)
 
+@css[fragment](
 ```
 [parse_this]
 ```
+)
 
+@css[fragment](
 ```haskell
 s :: Text
 
@@ -63,6 +66,7 @@ s :: Text
 if head s == "[" && last s == "]"
 then Text.replace "]" "" (Text.replace "[" "" s)
 ``` 
+)
 
 Note:
 
