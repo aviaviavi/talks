@@ -7,10 +7,13 @@
 
 Note:
 
-- I'm a software engineer at a local startup, Fraction, a platform for digital offers on Google Pay and Apple Pay. 
-- Learning Haskell has been generally tough for me.
-- Parsing, an often bragged about application of Haskell, was no exception, I had a hard time.
-- This talk aims to give an approachable introduction to how I finally got comfortable with it.
+- I'm a software engineer at a local startup, Fraction, a platform for digital
+  offers on Google Pay and Apple Pay.
+- Not uncommonly, learning Haskell has been quite a personal challenge, learning
+  to use the parsing libraries was no exception
+- This talk aims to give an approachable introduction to how I finally got
+  comfortable with it, and have helped jam Haskell down the throats of my
+  coworkers
 - Please ask questions!
 
 ---
@@ -18,7 +21,7 @@ Note:
 ### Contents
 
 - Intro, traditional approaches
-- Develop an intuition for parsing in Haskell: monadic parsing, MegaParsec
+- Developing an intuition for parsing in Haskell: monadic parsing, MegaParsec
   - Library overview
   - Examples
   
@@ -178,7 +181,7 @@ Regular expressions
 
 ### Some terminology
 
-- *Stream*: The sequence of information we're trying to parse
+- *Stream*: The data we're trying to parse
 - *Token*: A single element of the stream
 - *Lexeme*: A logical collection of tokens, like a word and the following spaces
 
@@ -236,7 +239,7 @@ data ParsecT e s m a
     
 Note:
 
-- The parsec alias we make is an alias of a data type that has an instance of
+- [First] The parsec alias we make is an alias of a data type that has an instance of
 MonadParsec, a monad that gives all the plumbing to easily write powerful
 parsers
 
@@ -334,7 +337,7 @@ data TodoEntry = TodoEntry String deriving (Show)
 Offers some basic building blocks for parsing single characters
 
 ```haskell
- -- (NOTE: renamed to `anySingle` in megaparsec 7)
+-- (NOTE: renamed to `anySingle` in megaparsec 7)
 anyChar :: MonadParsec e s m => m (Token s)
 digitChar :: (MonadParsec e s m, Token s ~ Char) => m (Token s)
 space :: (MonadParsec e s m, Token s ~ Char) => m ()
@@ -343,7 +346,7 @@ space :: (MonadParsec e s m, Token s ~ Char) => m ()
 ---
 
 - A foundational part of building the parser is deciding on how to separate our lexemes, ie the whitespace.
-- By convention, we assume a lexeme _starts at the head of the stream, and any following whitespace._
+- By convention, we assume a lexeme _starts at the head of the stream, and consumes any following whitespace._
 
 
 ```
@@ -362,6 +365,7 @@ inParens = between (symbol "(") (symbol ")")
 
 Note:
 
+- The lexer module gives us functions around defining our lexemes. For now, we will largely take advantage of `symbol`
 - symbol is a helper function for a specific kind of lexeme: parsing verbatim strings
 - it's a special case of L's `lexeme` function, which just has a more general type signature. It takes an arbitrary parser rather than just a string
 - `between` is part of parser-combinators, a dependency 
@@ -374,9 +378,9 @@ Note:
 hello = symbol "hello"
 
 -- this works
-parseTest hello "hello hello "
+parseTest hello "hello    "
 -- this does not
-parseTest hello "   hello hello"
+parseTest hello "   hello"
 ```
 
 ---
@@ -394,8 +398,6 @@ expecting "hello"
 ```haskell
 -- define our base symbol
 symbol = L.symbol space
-
--- lets parse our TODOs!
 
 haskellCommentStart :: Parser String
 haskellCommentStart = symbol "--"
