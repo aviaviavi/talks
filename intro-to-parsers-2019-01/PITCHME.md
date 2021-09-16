@@ -7,6 +7,7 @@
 
 Note:
 
+- These slides were originally hosted on gitpitch.com, a service which has since shut down. In abscense of a replacement, the raw markdown is the only mode of viewing.
 - I'm a software engineer at a local startup, Fraction, a platform for digital
   offers on Google Pay and Apple Pay.
 - Not uncommonly, learning Haskell has been quite a personal challenge, learning
