@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2022-03-14 Mon 20:37 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Beyond the Download Count: Understanding the Usage of Your Public Containers</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="Avi Press" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+// @license magnet:?xt=urn:btih:1f739d935676111cfff4b4693e3816e664797050&amp;dn=gpl-3.0.txt GPL-v3-or-Later
+<!--/*--><![CDATA[/*><!--*/
+     function CodeHighlightOn(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.add("code-highlighted");
+         target.classList.add("code-highlighted");
+       }
+     }
+     function CodeHighlightOff(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.remove("code-highlighted");
+         target.classList.remove("code-highlighted");
+       }
+     }
+    /*]]>*///-->
+// @license-end
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Beyond the Download Count: Understanding the Usage of Your Public Containers</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgfb26c13">1. Container registries today</a>
+<ul>
+<li><a href="#org08abdc5">1.1. Stats from container registries are limited</a></li>
+<li><a href="#org57bfb8b">1.2. What else might we want to understand?</a></li>
+<li><a href="#org35593fb">1.3. What is a pull, really?</a></li>
+<li><a href="#orgce73f38">1.4. Key terms</a></li>
+<li><a href="#org67e2b9c">1.5. What is a pull, really?</a></li>
+<li><a href="#org00e4cf0">1.6. Quick example</a></li>
+<li><a href="#org2f8e3b4">1.7. Challenges with measuring pulls</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgfb26c13" class="outline-2">
+<h2 id="orgfb26c13"><span class="section-number-2">1.</span> Container registries today</h2>
+<div class="outline-text-2" id="text-1">
+</div>
+<div id="outline-container-org08abdc5" class="outline-3">
+<h3 id="org08abdc5"><span class="section-number-3">1.1.</span> Stats from container registries are limited</h3>
+<div class="outline-text-3" id="text-1-1">
+</div>
+<ol class="org-ol">
+<li><a id="org34d9288"></a>Docker Hub<br />
+<div class="outline-text-4" id="text-1-1-1">
+<ul class="org-ul">
+<li>Total pulls for repo</li>
+</ul>
+</div>
+</li>
+<li><a id="orgba4baeb"></a>Others<br />
+<div class="outline-text-4" id="text-1-1-2">
+</div>
+<ol class="org-ol">
+<li><a id="orgbd21458"></a>GitHub<br />
+<div class="outline-text-5" id="text-1-1-2-1">
+<ul class="org-ul">
+<li>Total pulls for repo</li>
+<li>Total pulls by tag</li>
+</ul>
+</div>
+</li>
+<li><a id="orgd8c3476"></a>Quay.io<br />
+<div class="outline-text-5" id="text-1-1-2-2">
+<ul class="org-ul">
+<li>Total pulls for repo</li>
+<li>Total pulls by tag</li>
+</ul>
+</div>
+</li>
+<li><a id="org8923f09"></a>AWS ECR<br />
+<div class="outline-text-5" id="text-1-1-2-3">
+<ul class="org-ul">
+<li>Total pulls for repo</li>
+<li>Time series of pulls by repo</li>
+</ul>
+</div>
+</li>
+<li><a id="org150b62f"></a>This will be formatted as a beamer note&#xa0;&#xa0;&#xa0;<span class="tag"><span class="B_note">B_note</span></span><br />
+<div class="outline-text-5" id="text-1-1-2-4">
+</div>
+</li>
+</ol>
+</li>
+</ol>
+</div>
+<div id="outline-container-org57bfb8b" class="outline-3">
+<h3 id="org57bfb8b"><span class="section-number-3">1.2.</span> What else might we want to understand?</h3>
+<div class="outline-text-3" id="text-1-2">
+</div>
+<ol class="org-ol">
+<li><a id="orgea48743"></a>Metrics<br />
+<div class="outline-text-4" id="text-1-2-1">
+<ul class="org-ul">
+<li>Unique pulls (10 pulls from 10 people vs 10 pulls from the same person)</li>
+<li>Installs by:
+<ul class="org-ul">
+<li>Host platform</li>
+<li>Container runtime</li>
+<li>Country</li>
+<li>Arch</li>
+<li>Companies</li>
+</ul></li>
+</ul>
+</div>
+</li>
+<li><a id="org66a96e5"></a>Granularity<br />
+<div class="outline-text-4" id="text-1-2-2">
+<ul class="org-ul">
+<li>Should be able to understand metrics as a timeseries</li>
+<li>For any given metric, what was the count for:
+<ul class="org-ul">
+<li>Yesterday?</li>
+<li>Past week?</li>
+<li>Past month?</li>
+<li>Every tuesday this year?</li>
+<li>2021?</li>
+</ul></li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+<div id="outline-container-org35593fb" class="outline-3">
+<h3 id="org35593fb"><span class="section-number-3">1.3.</span> What is a pull, really?</h3>
+<div class="outline-text-3" id="text-1-3">
+</div>
+<ol class="org-ol">
+<li><a id="orgcf5e69d"></a>Key Terms<br />
+<div class="outline-text-4" id="text-1-3-1">
+</div>
+<ol class="org-ol">
+<li><a id="org7f52880"></a>Manifest<br />
+<div class="outline-text-5" id="text-1-3-1-1">
+<p>
+An image manifest provides a configuration and set of layers for a single container image for a specific architecture and operating system.
+</p>
+</div>
+</li>
+<li><a id="org925ecea"></a>Blob<br />
+<div class="outline-text-5" id="text-1-3-1-2">
+<p>
+Data that comprises the layers of the image
+</p>
+</div>
+</li>
+</ol>
+</li>
+</ol>
+</div>
+<div id="outline-container-orgce73f38" class="outline-3">
+<h3 id="orgce73f38"><span class="section-number-3">1.4.</span> Key terms</h3>
+<div class="outline-text-3" id="text-1-4">
+</div>
+<ol class="org-ol">
+<li><a id="orgb8e9e99"></a>Manifest<br />
+<div class="outline-text-4" id="text-1-4-1">
+<p>
+An image manifest provides a configuration and set of layers for a single container image for a specific architecture and operating system.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-json"><span style="color: #4f97d7;">{</span>
+  <span style="color: #4f97d7; font-weight: bold;">"schemaVersion"</span>: <span style="color: #a45bad;">2</span>,
+  <span style="color: #4f97d7; font-weight: bold;">"mediaType"</span>: <span style="color: #2d9574;">"application/vnd.oci.image.manifest.v1+json"</span>,
+  <span style="color: #4f97d7; font-weight: bold;">"config"</span>: <span style="color: #bc6ec5;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">"mediaType"</span>: <span style="color: #2d9574;">"application/vnd.oci.image.config.v1+json"</span>,
+    <span style="color: #4f97d7; font-weight: bold;">"size"</span>: <span style="color: #a45bad;">7023</span>,
+    <span style="color: #4f97d7; font-weight: bold;">"digest"</span>: <span style="color: #2d9574;">"sha256:b5b2b2c507a0944348e0303114d8d93aaaa081732b86451d9bce1f432a537bc7"</span>
+  <span style="color: #bc6ec5;">}</span>,
+  <span style="color: #4f97d7; font-weight: bold;">"layers"</span>: <span style="color: #bc6ec5;">[</span>
+    <span style="color: #2d9574;">{</span>
+      <span style="color: #4f97d7; font-weight: bold;">"mediaType"</span>: <span style="color: #2d9574;">"application/vnd.oci.image.layer.v1.tar+gzip"</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"size"</span>: <span style="color: #a45bad;">32654</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"digest"</span>: <span style="color: #2d9574;">"sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0"</span>
+    <span style="color: #2d9574;">}</span>,
+    <span style="color: #2d9574;">{</span>
+      <span style="color: #4f97d7; font-weight: bold;">"mediaType"</span>: <span style="color: #2d9574;">"application/vnd.oci.image.layer.v1.tar+gzip"</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"size"</span>: <span style="color: #a45bad;">16724</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"digest"</span>: <span style="color: #2d9574;">"sha256:3c3a4604a545cdc127456d94e421cd355bca5b528f4a9c1905b15da2eb4a4c6b"</span>
+    <span style="color: #2d9574;">}</span>,
+    <span style="color: #2d9574;">{</span>
+      <span style="color: #4f97d7; font-weight: bold;">"mediaType"</span>: <span style="color: #2d9574;">"application/vnd.oci.image.layer.v1.tar+gzip"</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"size"</span>: <span style="color: #a45bad;">73109</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"digest"</span>: <span style="color: #2d9574;">"sha256:ec4b8955958665577945c89419d1af06b5f7636b4ac3da7f12184802ad867736"</span>
+    <span style="color: #2d9574;">}</span>
+  <span style="color: #bc6ec5;">]</span>,
+  <span style="color: #4f97d7; font-weight: bold;">"annotations"</span>: <span style="color: #bc6ec5;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">"com.example.key1"</span>: <span style="color: #2d9574;">"value1"</span>,
+    <span style="color: #4f97d7; font-weight: bold;">"com.example.key2"</span>: <span style="color: #2d9574;">"value2"</span>
+  <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+
+<div id="outline-container-org67e2b9c" class="outline-3">
+<h3 id="org67e2b9c"><span class="section-number-3">1.5.</span> What is a pull, really?</h3>
+<div class="outline-text-3" id="text-1-5">
+</div>
+<ol class="org-ol">
+<li><a id="org50da225"></a>Definition (from Docker)<br />
+<div class="outline-text-4" id="text-1-5-1">
+<blockquote>
+<ul class="org-ul">
+<li>A pull request is defined as up to two GET requests on registry manifest URLs (/v2/*/manifests/*).</li>
+<li>A normal image pull makes a single manifest request.</li>
+<li>A pull request for a multi-arch image makes two manifest requests.</li>
+<li><p>
+HEAD requests are not counted.
+</p>
+
+<p>
+&#x2013; Docker,  <a href="https://docs.docker.com/docker-hub/download-rate-limit/">https://docs.docker.com/docker-hub/download-rate-limit/</a>
+</p></li>
+</ul>
+</blockquote>
+</div>
+</li>
+</ol>
+</div>
+<div id="outline-container-org00e4cf0" class="outline-3">
+<h3 id="org00e4cf0"><span class="section-number-3">1.6.</span> Quick example</h3>
+<div class="outline-text-3" id="text-1-6">
+
+<div id="orgef9b2e4" class="figure">
+<p><img src="test1.png" alt="test1.png" />
+</p>
+</div>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #4f97d7;">echo</span> $<span style="color: #7590db;">JAVA_HOME</span>
+<span style="color: #4f97d7;">which</span> java 
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2f8e3b4" class="outline-3">
+<h3 id="org2f8e3b4"><span class="section-number-3">1.7.</span> Challenges with measuring pulls</h3>
+<div class="outline-text-3" id="text-1-7">
+<ul class="org-ul">
+<li>A "pull" spans multiple API calls</li>
+<li>A "normal" image pull, and what else?</li>
+<li>Manifests vs blobs</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Avi Press</p>
+<p class="date">Created: 2022-03-14 Mon 20:37</p>
+</div>
+</body>
+</html>

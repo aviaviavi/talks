@@ -1,0 +1,4 @@
+*.tex
+*.pdf
+.DS_Store
+_minted*

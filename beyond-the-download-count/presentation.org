@@ -1,0 +1,553 @@
+#+TITLE: Beyond the Download Count: Understanding the Usage of Your Public Containers
+#+AUTHOR: Avi Press
+#+EMAIL:  avi@scarf.sh
+#+OPTIONS: H:2 toc:t num:t
+#+LATEX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [presentation]
+#+BEAMER_THEME: Madrid
+#+COLUMNS: %45ITEM %10BEAMER_ENV(Env) %10BEAMER_ACT(Act) %4BEAMER_COL(Col)
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\fontsize{4}{4}}
+
+* Container registries today
+
+** Stats from container registries are limited
+*** Docker Hub
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ENV: block
+    :END:
+    - Total pulls for repo
+*** Others
+     :PROPERTIES:
+     :BEAMER_COL: 0.4
+     :BEAMER_ACT: <2->
+     :BEAMER_ENV: block
+     :END:
+**** GitHub
+     :PROPERTIES:
+     :BEAMER_ENV: block
+     :END:
+     - Total pulls for repo
+     - Total pulls by tag
+**** Quay.io
+     :PROPERTIES:
+     :BEAMER_ENV: block
+     :END:
+     - Total pulls for repo
+     - Total pulls by tag
+**** AWS ECR
+     :PROPERTIES:
+     :BEAMER_ENV: block
+     :END:
+     - Total pulls for repo
+     - Time series of pulls by repo
+**** This will be formatted as a beamer note                         :B_note:
+     :PROPERTIES:
+     :BEAMER_env: note
+     :END:
+** What else might we want to understand?
+*** Metrics
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+     :BEAMER_ENV: block
+    :END:
+    - Unique pulls (10 pulls from 10 people vs 10 pulls from the same person)
+    - Pulls by:
+      - Host platform
+      - Container runtime
+      - Country
+      - Arch
+      - Companies
+    - Invocations versus downloads of the container?
+*** Granularity
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+     :BEAMER_ENV: block
+    :END:
+    - Should be able to understand metrics as a timeseries
+    - For any given metric, what was the count for:
+      - Yesterday?
+      - Past week?
+      - Past month?
+      - Every tuesday this year?
+      - 2021?
+* What is a pull and how does it work
+** What is a pull, really?
+*** Key Terms
+     :PROPERTIES:
+     :BEAMER_ENV: block
+     :END:
+**** Manifest
+     An image manifest provides a configuration and set of layers for a single container image for a specific architecture and operating system.
+**** Blob
+     Data that comprises the layers of the image
+** Key terms
+*** Manifest
+     :PROPERTIES:
+     :BEAMER_ENV: block
+     :END:
+      An image manifest provides a configuration and set of layers for a single container image for a specific architecture and operating system.
+      
+      #+latex: {\fontsize{4}{4}
+      #+begin_src json
+{
+  "schemaVersion": 2,
+  "mediaType": "application/vnd.oci.image.manifest.v1+json",
+  "config": {
+    "mediaType": "application/vnd.oci.image.config.v1+json",
+    "size": 7023,
+    "digest": "sha256:b5b2b2c507a0944348e0303114d8d93aaaa081732b86451d9bce1f432a537bc7"
+  },
+  "layers": [
+    {
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "size": 32654,
+      "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0"
+    },
+    {
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "size": 16724,
+      "digest": "sha256:3c3a4604a545cdc127456d94e421cd355bca5b528f4a9c1905b15da2eb4a4c6b"
+    },
+    {
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "size": 73109,
+      "digest": "sha256:ec4b8955958665577945c89419d1af06b5f7636b4ac3da7f12184802ad867736"
+    }
+  ],
+  "annotations": {
+    "com.example.key1": "value1",
+    "com.example.key2": "value2"
+  }
+}
+      #+end_src
+     #+latex: }
+      
+** What is a pull, really?
+*** Definition (from Docker)
+    :PROPERTIES:
+     :BEAMER_ENV: block
+    :END:
+    
+    #+begin_quote
++ A pull request is defined as up to two GET requests on registry manifest URLs (/v2/*/manifests/*).
++ A normal image pull makes a single manifest request.
++ A pull request for a multi-arch image makes two manifest requests.
++ HEAD requests are not counted.
+ 
+  -- Docker,  https://docs.docker.com/docker-hub/download-rate-limit/
+    #+end_quote
+** Quick example
+*** Call diagram
+    :PROPERTIES:
+    :BEAMER_COL: 0.5
+    :END:
+   #+begin_src plantuml :file pull-handshake.png
+title Docker Pull Flow
+
+"Client" -> "Registry" : /v2/ (fails if unauthenticated)
+"Registry" -> "Client" : auth response 200
+"Client" -> "Registry" : HEAD /v2/<name>/manifests/<reference>
+"Registry" -> "Client" : 200 OK | Content-Length: <length of manifest> | Docker-Content-Digest: <digest>
+"Client" -> "Registry" : GET /v2/<name>/manifests/<reference>
+"Client" --> "Registry" : GET /v2/<name>/manifests/<reference> (Optional 2nd if digest-based)
+"Registry" -> "Client" : 200 OK | <manifest content with signature>
+"Client" -> "Registry" : GET /v2/<name>/blobs/<digest1>
+"Client" --> "Registry" : GET /v2/<name>/blobs/<digest2>
+"Client" --> "Registry" : GET /v2/<name>/blobs/<digestN>
+   #+end_src
+
+   #+RESULTS:
+   [[file:pull-handshake.png]]
+
+*** Notes
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ENV: block
+    :END:
+    #+latex: {\fontsize{4}{4}
+    - /Name/: eg, ~organization-name/image-name~
+    - Reference: A tag (~latest~), or a digest (~sha256aaabbbcccddd...~).
+    #+latex: }
+** Challenges with measuring pulls
+   :PROPERTIES:
+   :END:
+   - A "pull" spans multiple API calls
+     - Event processors must be stateful, and must include a notion of identity at the request level.
+   - A "normal" image pull vs "abnormal"
+   - Manifests vs blobs
+   - Different clients have different behavior
+** Theory vs practice
+*** In theory
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ENV: block
+    :END:
+    Clients will call HEAD for the manifest and only call GET when updates are needed.
+*** In practice
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ENV: block
+    :END:
+    Many clients will just call GET every time.
+    Examples:
+      - GoHTTPClient
+      - Older versions of Watchtower
+      - Older versions of Diujn
+      - Older versions of Docker for Mac
+** It's actually even worse
+   
+   [[https://github.com/cri-o/cri-o/issues/5039][Some clients fetch manifests twice (eg, cri-o)]]
+
+   [[./crio-issue-title.png]]
+
+   [[./crio-issue-close.png]]
+   
+        
+* Pulls are data-rich
+** So what else can the registry see?
+   - Headers
+   - Time series information
+** Headers in Docker pulls
+*** Headers per request
+    :PROPERTIES:
+    :BEAMER_ENV: block
+    :END:
+  #+latex: {\fontsize{4}{4}
+  #+BEGIN_SRC text
+  X-Request-ID: <request id>
+  X-Forwarded-For: <ip>
+  authorization: Bearer <token>
+  accept: application/vnd.docker.distribution.manifest.v2+json
+  accept: application/vnd.docker.distribution.manifest.list.v2+json
+  accept: application/vnd.docker.distribution.manifest.v1+json
+  user-agent: docker/20.10.6 go/go1.13.15 git-commit/a3dc69e6b9 os/windows arch/amd64 UpstreamClient(Go-http-client/1.1)
+  #+END_SRC
+  #+latex: }
+*** This info can tell us
+    :PROPERTIES:
+     :BEAMER_ACT: <2->
+    :END:
+    - A notion of uniqueness(!!)
+    - IP request metadata
+    - Container runtime
+    - Platform
+** Headers are rich in information
+*** A notion of uniqueness
+    You may have had 1000 downloads today but from only 5 distinct sources
+*** IP request metadata
+    - Where are your users distributed geographically?
+    - Are your downloads coming from companies or individuals? Which companies?
+    - Laptops or CI?
+    - Which clouds?
+*** Container runtime
+    - Docker, containerd, cri-o, Watchertower?
+    - If lots old versions are involved, your pull counts are likely inflated!
+*** Platform
+    What is the breakdown of host OS? Arch?
+** So what else can the registry see?
+
+*** Time series of requests
+
+  #+latex: {\fontsize{4}{4}
+   |  Time | Origin ID | Request Type | Path                              |
+   |-------+-----------+--------------+-----------------------------------|
+   | 12:00 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+   | 12:00 | abc       | ~GET~        | ~/v2/image-name/manifests/latest~ |
+   | 12:05 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+   | 12:10 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+   | 12:15 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+   | 12:20 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+   | 12:25 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+  #+latex: }
+   
+*** This info can tell us
+    
+    - Invocations of the container vs downloads of the container
+    - Gives clues to activity / behavior
+
+** Time series data tells us about usage
+*** Consider this access patterns
+    :PROPERTIES:
+    :END:
+ #+latex: {\tiny
+  |  Time | Origin ID | Request Type | Path                              |
+  |-------+-----------+--------------+-----------------------------------|
+  | 12:00 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+  | 12:00 | abc       | ~GET~        | ~/v2/image-name/manifests/latest~ |
+  | 12:05 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+  | 12:10 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+  | 12:15 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+  | 12:20 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+ #+latex: }
+*** Relevant info
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ACT: <2->
+    :BEAMER_ENV: block
+    :END:
+   - Highly regular intervals, polling for latest version
+*** Possible explanations
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ACT: <2->
+    :BEAMER_ENV: block
+    :END:
+   - Production deployment
+   - Internal tooling deployment
+
+** Time series data tells us about usage
+*** Versus this one
+    
+   #+latex: {\tiny
+    |  Time | Origin ID | Request Type | Path                              |
+    |-------+-----------+--------------+-----------------------------------|
+    | 12:00 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+    | 12:00 | abc       | ~GET~        | ~/v2/image-name/manifests/latest~ |
+    | 13:09 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+    | 13:09 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+    | 13:10 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+    | 09:01 | abc       | ~HEAD~       | ~/v2/image-name/manifests/1.0.1~  |
+    | 09:01 | abc       | ~GET~        | ~/v2/image-name/manifests/1.0.1~  |
+    | 09:03 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+    | 09:10 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+ #+latex: }
+*** Relevant info
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ACT: <2->
+    :BEAMER_ENV: block
+    :END:
+   - Irregular intervals
+   - Multiple versions
+*** Possible explanations
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ACT: <2->
+    :BEAMER_ENV: block
+    :END:
+   - Local development
+* But how can we get this data?
+** Convince your registry to give it you
+   Let me know how it goes!
+
+   [[./data-requests.png]]
+   
+** Host a registry
+  
+  #+begin_src sh
+$ docker pull yourdomain.com/your-image
+  #+end_src
+   
+*** Pros
+    :PROPERTIES:
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+    - Open source solutions (eg [[https://github.com/distribution/distribution][distribution]])
+    - Distribute from your own domain
+    - Full access (publishing, data handling, insights, etc)
+*** Cons
+    :PROPERTIES:
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+    - Bandwidth is expensive
+    - Availability and performance are on you
+      - /How long will it take your us-west-2 machine to stream a 1GB container to a user in Mumbai?/
+
+** /Registry Gateway/
+   
+  #+begin_src sh
+$ docker pull yourdomain.com/your-image
+  #+end_src
+
+*** Idea
+    :PROPERTIES:
+    :BEAMER_ENV: block
+    :END:
+
+    Put a service in front of the registry that:
+
+    - Passes traffic transparently to the registry that hosts the container via a redirect
+    - Processes traffic to process pull data
+
+*** Ignore
+    :PROPERTIES:
+    :BEAMER_ENV: ignoreheading
+    :END:
+    
+    #+begin_src plantuml :file gateway_desription.png
+    EndUser <-> [Gateway]
+    [Gateway] .> [Registry]
+    #+end_src
+
+    #+RESULTS:
+    [[file:gateway_desription.png]]
+ 
+** /Registry Gateway/
+
+*** Pros
+    :PROPERTIES:
+    :BEAMER_ENV: block
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+
+    #+latex: {\small
+    - Can access all request data
+    - Lightweight service - redirection can be very dumb
+    - Robust to API changes from the the client/registry
+    - Simply(*) redirecting rather than proxying means minimal overhead (bandwidth and speed)
+    - Decoupling from registry
+    - Distribute from your own domain
+    - Can work for things besides containers!
+    #+latex: }
+
+*** Cons
+    :PROPERTIES:
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+
+    - Added complexity
+      - Failure point
+      - Performance choke point
+    
+** Simple!(*)
+
+   #+begin_src nginx
+   server {
+     server_name a.domain.com
+     listen 443;
+     rewrite (.*) https://registry-1.docker.io$1 permanent;
+   }
+   #+end_src
+   
+*** ...Almost
+   - Gateway still needs to be availabile and fast globally
+   - Can't actually always redirect :'(
+     
+** In certain cases, container registry gateways must proxy
+*** Standard auth & pull
+    :PROPERTIES:
+    :END:
+
+    #+begin_src plantuml :file auth-registry-handshake.png
+title Docker Auth Flow (Standard)
+
+"Client" -> "Registry" : /v2/
+"Client" <- "Registry" : 401 UNAUTHORIZED
+"Client" -> "Registry" : /token
+"Client" <- "Registry" : 200 <with bearer token>
+"Client" -> "Registry" : /v2/ (with token)
+"Client" <- "Registry" : 200 OK
+"Client" -> "Registry" : Remainder of pull flow
+ #+end_src
+
+    #+ATTR_LaTeX: :height 0.5\textwidth
+    #+RESULTS:
+    [[file:auth-registry-handshake.png]]
+   
+** In certain cases, the container registry gateways must proxy
+*** Auth & pull with Gateway
+    :PROPERTIES:
+    :END:
+
+#+begin_src plantuml :file auth-gateway-handshake.png
+title Docker Auth Flow (with gateway)
+
+"Client" -> "Gateway" : /v2/
+"Client" <- "Gateway" : 302 Location: <registry>
+"Client" --> "Registry" : /v2/
+"Client" <- "Registry" : 401 UNAUTHORIZED -H Www-Authenticate: Bearer realm="<auth-service>/token",service=<registry.com>,scope="repository:org/my-app:pull"
+"Client" -[#red]> "Auth Service" : /token?service=gateway.com&scope=repository:org/my-app:pull
+"Client" <- "Auth Service" : 200 <provides Bearer token>
+"Client" -> "Gateway" : /v2/ -H Authorization: Bearer <token>
+"Client" <- "Gateway" : 302 Location: <registry>
+"Client" --> "Registry" : /v2/ -H Authorization: Bearer <token>
+"Client" <- "Registry" : 200 OK
+"Client" -> "Gateway" : Remainder of pull flow
+"Gateway" --> "Registry"
+#+end_src
+
+    #+RESULTS:
+    [[file:auth-gateway-handshake.png]]
+   
+   
+    Some clients mess up the ~/token~ request when redirected, confusing ~service address~ & ~redirect target~.
+** How Scarf built its container registry gateway
+*** Scarf Gateway
+
+    #+ATTR_LaTeX: :height 0.5\textwidth
+    [[./scarf-gateway.png]]
+
+** How Scarf built its container registry gateway
+   (to be open-sourced soon)
+*** Phase 1
+    /A general recommended approach to anyone wanting to get started building their own/
+    :PROPERTIES:
+    :END:
+    - Nginx
+      - Send access logs to storage (we were using AWS Cloudwatch)
+      - Lua for any custom business logic you might want, eg reading configs from Redis
+    - Process logs asyncronously to generate analytics & insights
+*** Phase 2
+    :PROPERTIES:
+    :END:
+    - Server as hand-written Haskell code
+    - Configuration in-memory
+    - Send access logs to time series storage, eg Kafka
+    - ~distribution~ as a pull-through-cache when we are forced to proxy
+** Data privacy
+   
+   /This can be done while still completely preserving end-user privacy./
+   
+   - Depending on how you store and process this data, you may or may not run into compliance considerations like GDPR
+   - Recommendations:
+     - Don't touch PII you don't need
+     - Delete it once you are done processing it
+     - Leverage 3rd parties to handle it on your behalf
+     - Consult legal counsel
+ 
+** Other benfenfits of the gateway approach
+   
+   - Distribute from your own domain, not someone else's
+   - Ability to switch registries on-the-fly without breaking anything downstream.
+     - Dual publishing can keep your containers online when primary registry goes down
+     
+** Notable challenges
+   
+   - Easy to build, harder to scale
+     - Multi-region availability, redundancy, etc is where the real complexity lives
+   - Proxying as little as possible
+   - Many competing container runtimes / clients -> edge-case bugs
+
+** Tying it together
+   
+   - Registry data can be useful!
+   - Your current registry provider doesn't provide access to pull data, but there are still ways to get to it.
+   - Registry gateways can be a reasonable option
+
+** Thank you!
+
+*** Avi Press
+    :PROPERTIES:
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+    | Website  | https://avi.press |
+    | Twitter  | [[https://twitter.com/avi_press][@avi__press]]       |
+    | GitHub   | [[https://github.com/aviaviavi][aviaviavi]]         |
+    | LinkedIn | [[https://www.linkedin.com/in/avi-press-4437a356/][link]]              |
+
+*** Scarf
+    :PROPERTIES:
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+    | Website  | https://scarf.sh |
+    | Twitter  | [[https://twitter.com/scarf_oss][scarf_oss]]        |
+    | GitHub   | [[https://github.com/scarf-sh][scarf-sh]]         |
+    | LinkedIn | [[https://www.linkedin.com/in/avi-press-4437a356/][link]]             |
