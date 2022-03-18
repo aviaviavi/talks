@@ -1,5 +1,5 @@
 #+TITLE: Beyond the Download Count: Understanding the Usage of Your Public Containers
-#+AUTHOR: Avi Press
+#+AUTHOR: Avi Press 
 #+EMAIL:  avi@scarf.sh
 #+OPTIONS: H:2 toc:t num:t
 #+LATEX_CLASS: beamer
@@ -8,9 +8,13 @@
 #+COLUMNS: %45ITEM %10BEAMER_ENV(Env) %10BEAMER_ACT(Act) %4BEAMER_COL(Col)
 #+LATEX_HEADER: \RequirePackage{fancyvrb}
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\fontsize{4}{4}}
+#+latex_header: \AtBeginSection[]{\begin{frame}<beamer>\frametitle{Outline}\tableofcontents[currentsection]\end{frame}}
 
-* Container registries today
-
+* Before we start...
+** Quick notes
+  - These slides are generated from an org-mode document which is available here: https://github.com/aviaviavi/talks/blob/master/beyond-the-download-count/presentation.org
+  - Feel free to jump in with questions as we go!
+* Container registries today & the data provided
 ** Stats from container registries are limited
 *** Docker Hub
     :PROPERTIES:
@@ -57,7 +61,7 @@
       - Host platform
       - Container runtime
       - Country
-      - Arch
+      - Architecture
       - Companies
     - Invocations versus downloads of the container?
 *** Granularity
@@ -65,13 +69,14 @@
     :BEAMER_COL: 0.4
      :BEAMER_ENV: block
     :END:
-    - Should be able to understand metrics as a timeseries
+    - Should be able to understand metrics as a time-series
     - For any given metric, what was the count for:
       - Yesterday?
       - Past week?
       - Past month?
-      - Every tuesday this year?
+      - Every Tuesday this year?
       - 2021?
+
 * What is a pull and how does it work
 ** What is a pull, really?
 *** Key Terms
@@ -141,7 +146,6 @@
 ** Quick example
 *** Call diagram
     :PROPERTIES:
-    :BEAMER_COL: 0.5
     :END:
    #+begin_src plantuml :file pull-handshake.png
 title Docker Pull Flow
@@ -158,15 +162,15 @@ title Docker Pull Flow
 "Client" --> "Registry" : GET /v2/<name>/blobs/<digestN>
    #+end_src
 
+   #+ATTR_LaTeX: :height 0.35\textwidth
    #+RESULTS:
    [[file:pull-handshake.png]]
 
 *** Notes
     :PROPERTIES:
-    :BEAMER_COL: 0.4
     :BEAMER_ENV: block
     :END:
-    #+latex: {\fontsize{4}{4}
+    #+latex: {\footnotesize
     - /Name/: eg, ~organization-name/image-name~
     - Reference: A tag (~latest~), or a digest (~sha256aaabbbcccddd...~).
     #+latex: }
@@ -204,7 +208,6 @@ title Docker Pull Flow
 
    [[./crio-issue-close.png]]
    
-        
 * Pulls are data-rich
 ** So what else can the registry see?
    - Headers
@@ -214,7 +217,7 @@ title Docker Pull Flow
     :PROPERTIES:
     :BEAMER_ENV: block
     :END:
-  #+latex: {\fontsize{4}{4}
+  #+latex: {\footnotesize
   #+BEGIN_SRC text
   X-Request-ID: <request id>
   X-Forwarded-For: <ip>
@@ -222,7 +225,8 @@ title Docker Pull Flow
   accept: application/vnd.docker.distribution.manifest.v2+json
   accept: application/vnd.docker.distribution.manifest.list.v2+json
   accept: application/vnd.docker.distribution.manifest.v1+json
-  user-agent: docker/20.10.6 go/go1.13.15 git-commit/a3dc69e6b9 os/windows arch/amd64 UpstreamClient(Go-http-client/1.1)
+  user-agent: docker/20.10.6 go/go1.13.15 git-commit/a3dc69e6b9
+              os/windows arch/amd64 UpstreamClient(Go-http-client/1.1)
   #+END_SRC
   #+latex: }
 *** This info can tell us
@@ -241,16 +245,15 @@ title Docker Pull Flow
     - Are your downloads coming from companies or individuals? Which companies?
     - Laptops or CI?
     - Which clouds?
-*** Container runtime
-    - Docker, containerd, cri-o, Watchertower?
-    - If lots old versions are involved, your pull counts are likely inflated!
 *** Platform
-    What is the breakdown of host OS? Arch?
+    - Container runtime: Docker, containerd, cri-o, Watchertower?
+      - If lots old versions are involved, your pull counts are likely inflated!
+    - What is the breakdown of host OS? Architecture?
 ** So what else can the registry see?
 
 *** Time series of requests
 
-  #+latex: {\fontsize{4}{4}
+  #+latex: {\footnotesize
    |  Time | Origin ID | Request Type | Path                              |
    |-------+-----------+--------------+-----------------------------------|
    | 12:00 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
@@ -259,7 +262,6 @@ title Docker Pull Flow
    | 12:10 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
    | 12:15 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
    | 12:20 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
-   | 12:25 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
   #+latex: }
    
 *** This info can tell us
@@ -271,7 +273,7 @@ title Docker Pull Flow
 *** Consider this access patterns
     :PROPERTIES:
     :END:
- #+latex: {\tiny
+  #+latex: {\footnotesize
   |  Time | Origin ID | Request Type | Path                              |
   |-------+-----------+--------------+-----------------------------------|
   | 12:00 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
@@ -300,7 +302,7 @@ title Docker Pull Flow
 ** Time series data tells us about usage
 *** Versus this one
     
-   #+latex: {\tiny
+  #+latex: {\footnotesize
     |  Time | Origin ID | Request Type | Path                              |
     |-------+-----------+--------------+-----------------------------------|
     | 12:00 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
@@ -359,10 +361,6 @@ $ docker pull yourdomain.com/your-image
 
 ** /Registry Gateway/
    
-  #+begin_src sh
-$ docker pull yourdomain.com/your-image
-  #+end_src
-
 *** Idea
     :PROPERTIES:
     :BEAMER_ENV: block
@@ -377,8 +375,13 @@ $ docker pull yourdomain.com/your-image
     :PROPERTIES:
     :BEAMER_ENV: ignoreheading
     :END:
+
+  #+begin_src sh
+$ docker pull yourdomain.com/your-image
+  #+end_src
     
     #+begin_src plantuml :file gateway_desription.png
+    scale 2
     EndUser <-> [Gateway]
     [Gateway] .> [Registry]
     #+end_src
@@ -426,7 +429,7 @@ $ docker pull yourdomain.com/your-image
    #+end_src
    
 *** ...Almost
-   - Gateway still needs to be availabile and fast globally
+   - Gateway still needs to be available and fast globally
    - Can't actually always redirect :'(
      
 ** In certain cases, container registry gateways must proxy
@@ -438,19 +441,20 @@ $ docker pull yourdomain.com/your-image
 title Docker Auth Flow (Standard)
 
 "Client" -> "Registry" : /v2/
-"Client" <- "Registry" : 401 UNAUTHORIZED
-"Client" -> "Registry" : /token
+"Client" <- "Registry" : 401 UNAUTHORIZED -H Www-Authenticate: Bearer realm="<auth-service>/token",service=<registry.com>,scope="repository:org/my-app:pull"
+"Client" -> "Auth Service" : /token?service=gateway.com&scope=repository:org/my-app:pull
+"Client" <- "Auth Service" : 200 <provides Bearer token>
 "Client" <- "Registry" : 200 <with bearer token>
 "Client" -> "Registry" : /v2/ (with token)
 "Client" <- "Registry" : 200 OK
 "Client" -> "Registry" : Remainder of pull flow
  #+end_src
 
-    #+ATTR_LaTeX: :height 0.5\textwidth
+    #+ATTR_HTML: :width 75%
     #+RESULTS:
     [[file:auth-registry-handshake.png]]
    
-** In certain cases, the container registry gateways must proxy
+** In certain cases, container registry gateways must proxy
 *** Auth & pull with Gateway
     :PROPERTIES:
     :END:
@@ -492,7 +496,7 @@ title Docker Auth Flow (with gateway)
     - Nginx
       - Send access logs to storage (we were using AWS Cloudwatch)
       - Lua for any custom business logic you might want, eg reading configs from Redis
-    - Process logs asyncronously to generate analytics & insights
+    - Process logs asynchronously to generate analytics & insights
 *** Phase 2
     :PROPERTIES:
     :END:
@@ -511,7 +515,7 @@ title Docker Auth Flow (with gateway)
      - Leverage 3rd parties to handle it on your behalf
      - Consult legal counsel
  
-** Other benfenfits of the gateway approach
+** Other benefits of the gateway approach
    
    - Distribute from your own domain, not someone else's
    - Ability to switch registries on-the-fly without breaking anything downstream.
@@ -551,3 +555,4 @@ title Docker Auth Flow (with gateway)
     | Twitter  | [[https://twitter.com/scarf_oss][scarf_oss]]        |
     | GitHub   | [[https://github.com/scarf-sh][scarf-sh]]         |
     | LinkedIn | [[https://www.linkedin.com/in/avi-press-4437a356/][link]]             |
+    
