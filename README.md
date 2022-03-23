@@ -1,1 +1,1 @@
-A repo for talks, aimed to be used with gitpitch for now.
+A repo for the talks that I write in plain text
