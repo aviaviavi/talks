@@ -249,6 +249,31 @@ title Docker Pull Flow
     - Container runtime: Docker, containerd, cri-o, Watchertower?
       - If lots old versions are involved, your pull counts are likely inflated!
     - What is the breakdown of host OS? Architecture?
+** Uniques can be extremely useful
+
+   #+begin_quote
+   Two users are responsible for 73,000 pulls between them, with the next 10 being responsible for 55,000 between them. Almost half of our pulls through Scarf can be attributed to 20 users with misconfigured or overly aggressive deployment/update services
+
+   - LinuxServer.io Blog
+   #+end_quote
+   
+   link - https://www.linuxserver.io/blog/unravelling-some-stats
+
+*** Graphs
+    :PROPERTIES:
+    :BEAMER_ENV: ignoreheading
+    :END:
+**** g1
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :END:
+     [[./linux-server-1.png]]
+**** g2
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :END:
+     [[./linux-server-2.png]]
+   
 ** So what else can the registry see?
 
 *** Time series of requests
