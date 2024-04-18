@@ -1,0 +1,416 @@
+#+TITLE: Measuring the Growth of Your Open Source AI Project
+#+AUTHOR: Avi Press
+#+EMAIL:  avi@scarf.sh
+#+OPTIONS: H:2 toc:t num:t
+#+LATEX_CLASS: beamer
+#+startup: beamer
+#+LATEX_CLASS_OPTIONS: [presentation]
+#+BEAMER_THEME: Madrid
+#+COLUMNS: %45ITEM %10BEAMER_ENV(Env) %10BEAMER_ACT(Act) %4BEAMER_COL(Col)
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\fontsize{4}{4}}
+#+latex_header: \AtBeginSection[]{\begin{frame}<beamer>\frametitle{Outline}\tableofcontents[currentsection]\end{frame}}
+#+REVEAL_ROOT: https://cdn.jsdelivr.net/npm/reveal.js@3.8.0
+
+* Before we start...
+** Quick notes
+  - These slides are generated from an org-mode document which is available here: https://github.com/aviaviavi/talks/blob/master/beyond-the-download-count/presentation-04-2024-ai.org
+  - I'm doing a talk on Thursday that goes deeper into these topics, join me!
+* Artifact registries today & the data provided
+** Stats from registries are limited
+*** Docker Hub
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ENV: block
+    :END:
+    - Total downloads for repo
+*** Others
+     :PROPERTIES:
+     :BEAMER_COL: 0.4
+     :BEAMER_ACT: <2->
+     :BEAMER_ENV: block
+     :END:
+**** GitHub Packages & Containers
+     :PROPERTIES:
+     :BEAMER_ENV: block
+     :END:
+     - Total downloads for repo
+     - Total downloads by tag
+**** PyPI
+     :PROPERTIES:
+     :BEAMER_ENV: block
+     :END:
+     - Total downloads over time
+     - Downloads by version over time
+     - Downloads by mirror vs not mirror over time
+**** This will be formatted as a beamer note                            :B_note:
+     :PROPERTIES:
+     :BEAMER_env: note
+     :END:
+** What else might we want to understand?
+*** Metrics
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+     :BEAMER_ENV: block
+    :END:
+    - Unique downloads (10 downloads from 10 people vs 10 downloads from the same person)
+    - Downloads by:
+      - Host platform
+      - Client
+      - Country
+      - Architecture
+      - Companies
+    - Invocations versus downloads of the container?
+*** Granularity
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+     :BEAMER_ENV: block
+    :END:
+    - Should be able to understand metrics as a time-series
+    - For any given metric, what was the count for:
+      - Yesterday?
+      - Past week?
+      - Past month?
+      - Every Tuesday this year?
+      - 2021?
+
+* Pulls and downloads are actually data-rich
+** So what else can the registry see?
+   - Headers
+   - Time series information
+   - Identifiers (IP address, auth, etc)
+** Headers in downloads give important clues
+*** Headers per request
+    :PROPERTIES:
+    :BEAMER_ENV: block
+    :END:
+  #+latex: {\footnotesize
+  #+BEGIN_SRC text
+  X-Request-ID: <request id>
+  X-Forwarded-For: <ip>
+  authorization: Bearer <token>
+  user-agent: Helm/3.13.3
+  #+END_SRC
+  #+latex: }
+*** This info can tell us
+    :PROPERTIES:
+     :BEAMER_ACT: <2->
+    :END:
+    - A notion of uniqueness(!!)
+    - IP request metadata
+    - Client, container runtime, etc.
+    - Is this a production deployment?
+    - Platform
+** Headers are rich in information
+*** A notion of uniqueness
+    You may have had 1000 downloads today but from only 5 distinct sources
+*** IP request metadata
+    - Where are your users distributed geographically?
+    - Are your downloads coming from companies or individuals? Which companies?
+    - Which clouds?
+*** Platform
+    - Client / runtime versions. Is this happening in a k8s cluster or on someone's laptop?
+      - If lots old versions are involved, your download counts are likely inflated!
+    - What is the breakdown of host OS? Architecture?
+** Uniques can be extremely useful
+   #+begin_quote
+   Two users are responsible for 73,000 pulls between them, with the next 10 being responsible for 55,000 between them. Almost half of our pulls through Scarf can be attributed to 20 users with misconfigured or overly aggressive deployment/update services
+
+   - LinuxServer.io Blog
+   #+end_quote
+   
+   link - https://www.linuxserver.io/blog/unravelling-some-stats
+
+*** Graphs
+    :PROPERTIES:
+    :BEAMER_ENV: ignoreheading
+    :END:
+**** g1
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :END:
+     [[./linux-server-1.png]]
+**** g2
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :END:
+     [[./linux-server-2.png]]
+   
+** So what else can the registry see?
+
+*** Time series of requests
+
+  #+latex: {\footnotesize
+   |  Time | Origin ID | Request Type | Path                              |
+   |-------+-----------+--------------+-----------------------------------|
+   | 12:00 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+   | 12:00 | abc       | ~GET~        | ~/v2/image-name/manifests/latest~ |
+   | 12:05 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+   | 12:10 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+   | 12:15 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+   | 12:20 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+  #+latex: }
+   
+*** This info can tell us
+    
+    - Invocations of the container vs downloads of the container
+    - Gives clues to activity / behavior
+
+** Time series data tells us about usage
+*** Consider this access patterns
+    :PROPERTIES:
+    :END:
+  #+latex: {\footnotesize
+  |  Time | Origin ID | Request Type | Path                              |
+  |-------+-----------+--------------+-----------------------------------|
+  | 12:00 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+  | 12:00 | abc       | ~GET~        | ~/v2/image-name/manifests/latest~ |
+  | 12:05 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+  | 12:10 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+  | 12:15 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+  | 12:20 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+ #+latex: }
+*** Relevant info
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ACT: <2->
+    :BEAMER_ENV: block
+    :END:
+   - Highly regular intervals, polling for latest version
+*** Possible explanations
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ACT: <2->
+    :BEAMER_ENV: block
+    :END:
+   - Production deployment
+   - Internal tooling deployment
+
+** Time series data tells us about usage
+*** Versus this one
+    
+  #+latex: {\footnotesize
+    |  Time | Origin ID | Request Type | Path                              |
+    |-------+-----------+--------------+-----------------------------------|
+    | 12:00 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+    | 12:00 | abc       | ~GET~        | ~/v2/image-name/manifests/latest~ |
+    | 13:09 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+    | 13:09 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+    | 13:10 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+    | 09:01 | abc       | ~HEAD~       | ~/v2/image-name/manifests/1.0.1~  |
+    | 09:01 | abc       | ~GET~        | ~/v2/image-name/manifests/1.0.1~  |
+    | 09:03 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+    | 09:10 | abc       | ~HEAD~       | ~/v2/image-name/manifests/latest~ |
+ #+latex: }
+*** Relevant info
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ACT: <2->
+    :BEAMER_ENV: block
+    :END:
+   - Irregular intervals
+   - Multiple versions
+*** Possible explanations
+    :PROPERTIES:
+    :BEAMER_COL: 0.4
+    :BEAMER_ACT: <2->
+    :BEAMER_ENV: block
+    :END:
+   - Local development
+* But how can we get this data?
+** Convince your registry to give it you
+   Let me know how it goes!
+
+   [[./data-requests.png]]
+   
+** Host a registry
+  
+  #+begin_src sh
+$ docker pull yourdomain.com/your-image
+  #+end_src
+   
+*** Pros
+    :PROPERTIES:
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+    - Open source solutions (eg [[https://github.com/distribution/distribution][distribution]])
+    - Distribute from your own domain
+    - Full access (publishing, data handling, insights, etc)
+*** Cons
+    :PROPERTIES:
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+    - Bandwidth is expensive
+    - Availability and performance are on you
+      - /How long will it take your us-west-2 machine to stream a 1GB artifact to a user in Mumbai?/
+
+** /Registry Gateway/
+*** Idea
+    :PROPERTIES:
+    :BEAMER_ENV: block
+    :END:
+
+    Put a service in front of the registry that:
+
+    - Passes traffic transparently to the registry that hosts the artifact via a redirect
+    - Processes traffic to process pull data
+
+*** Ignore
+    :PROPERTIES:
+    :BEAMER_ENV: ignoreheading
+    :END:
+
+  #+begin_src sh
+$ docker pull yourdomain.com/your-image
+  #+end_src
+    
+    #+begin_src plantuml :file gateway_desription.png
+    scale 2
+    EndUser <-> [Gateway]
+    [Gateway] .> [Registry]
+    #+end_src
+
+    #+RESULTS:
+    [[file:gateway_desription.png]]
+ 
+** /Registry Gateway/
+
+*** Pros
+    :PROPERTIES:
+    :BEAMER_ENV: block
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+
+    #+latex: {\small
+    - Can access all request data
+    - Lightweight service - redirection can be very dumb
+    - Robust to API changes from the the client/registry
+    - Simply(*) redirecting rather than proxying means minimal overhead (bandwidth and speed)
+    - Decoupling from registry
+    - Distribute from your own domain
+    #+latex: }
+
+*** Cons
+    :PROPERTIES:
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+
+    - Added complexity
+      - Failure point
+      - Performance choke point
+    
+** Simple!(*)
+
+   #+begin_src nginx
+   server {
+     server_name a.domain.com
+     listen 443;
+     rewrite (.*) https://registry-1.docker.io$1 permanent;
+   }
+   #+end_src
+   
+*** ...Almost
+   - Gateway still needs to be available and fast globally
+   - Can't actually always redirect, some clients will choke :'(
+** How Scarf built its artifact registry gateway
+*** Scarf Gateway
+
+    #+ATTR_LaTeX: :height 0.5\textwidth
+    [[./scarf-gateway.png]]
+
+** How Scarf built its artifact registry gateway
+Open source: https://github.com/scarf-sh/gateway
+*** Phase 1
+    /A general recommended approach to anyone wanting to get started building their own/
+    :PROPERTIES:
+    :END:
+    - Nginx
+      - Send access logs to storage (we were using AWS Cloudwatch)
+      - Lua for any custom business logic you might want, eg reading configs from Redis
+    - Process logs asynchronously to generate analytics & insights
+*** Phase 2
+    :PROPERTIES:
+    :END:
+    - Server as hand-written Haskell code
+    - Configuration in-memory
+    - Send access logs to time series storage, eg Kafka
+    - ~distribution~ as a pull-through-cache when we are forced to proxy
+** Data privacy
+   
+   /This can be done while still completely preserving end-user privacy./
+   
+   - Depending on how you store and process this data, you may or may not run into compliance considerations like GDPR
+   - Recommendations:
+     - Don't touch PII you don't need
+     - Delete it once you are done processing it
+     - Leverage 3rd parties to handle it on your behalf
+     - Consult legal counsel
+ 
+** Other benefits of the gateway approach
+   
+   - Distribute from your own domain, not someone else's
+   - Ability to switch registries on-the-fly without breaking anything downstream.
+     - Dual publishing can keep your artifacts online when primary registry goes down
+     
+** Notable challenges
+   
+   - Easy to build, harder to scale
+     - Multi-region availability, redundancy, etc is where the real complexity lives
+   - Proxying as little as possible
+   - Many competing container runtimes / clients -> edge-case bugs
+
+** Tying it together
+   
+   - Registry data can be useful!
+   - Your current registry provider doesn't provide access to pull data, but there are still ways to get to it.
+   - Registry gateways can be a reasonable option
+
+* Usage Analytics for any project under The Linux Foundation & LF AI
+** Scarf + Linux Foundation Partnership
+  All LF projects receive:
+  - Free Scarf licenses for your entire team
+  - Unlimited data history retention
+  - Tracking for all of your packages, containers, models, other artifacts
+    - /also your website, OSS docs, and any other content!/
+  - Hands-on support from Scarf team
+** Follow the lead of other projects in the LFAI & Data, CNCF, and LF broadly:
+- Flyte
+- Falco
+- Linkerd
+- StarRocks
+- Cert Manager
+- Open Telemetry
+- Litmus Chaos
+- Janssen
+- Emissary Ingress
+- Dapr
+- Fluent Bit
+- KrakenD
+- More!
+** Thank you!
+*** Avi Press
+    :PROPERTIES:
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+    | Website  | https://avi.press |
+    | Twitter  | [[https://twitter.com/avi_press][@avi-press]]        |
+    | GitHub   | [[https://github.com/aviaviavi][aviaviavi]]         |
+    | LinkedIn | [[https://www.linkedin.com/in/avi-press-4437a356/][link]]              |
+
+*** Scarf
+    :PROPERTIES:
+    :BEAMER_COL: 0.45
+    :BEAMER_ENV: block
+    :END:
+    | Website  | https://scarf.sh |
+    | Twitter  | [[https://twitter.com/scarf_oss][scarf-oss]]        |
+    | GitHub   | [[https://github.com/scarf-sh][scarf-sh]]         |
+    | LinkedIn | [[https://www.linkedin.com/in/avi-press-4437a356/][link]]             |
+    
+
+    

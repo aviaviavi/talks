@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>What Information are Package and Container Registries Hiding From You?</title>
+<meta name="author" content="Avi Press"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@3.8.0/css/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@3.8.0/css/theme/black.css" id="theme"/>
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'https://cdn.jsdelivr.net/npm/reveal.js@3.8.0/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">What Information are Package and Container Registries Hiding From You?</h1><h2 class="author">Avi Press</h2><p class="date">Created: 2024-04-08 Mon 12:59</p>
+</section>
+<section id="table-of-contents-section">
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#/slide-1">1. Before we start&#x2026;</a>
+<ul>
+<li><a href="#/slide-1-1">1.1. Quick notes</a></li>
+</ul>
+</li>
+<li><a href="#/slide-2">2. Container registries today &amp; the data provided</a>
+<ul>
+<li><a href="#/slide-2-1">2.1. Stats from container registries are limited</a></li>
+<li><a href="#/slide-2-2">2.2. What else might we want to understand?</a></li>
+</ul>
+</li>
+<li><a href="#/slide-3">3. What is a pull and how does it work</a>
+<ul>
+<li><a href="#/slide-3-1">3.1. What is a pull, really?</a></li>
+<li><a href="#/slide-3-2">3.2. Key terms</a></li>
+<li><a href="#/slide-3-3">3.3. What is a pull, really?</a></li>
+<li><a href="#/slide-3-4">3.4. Quick example</a></li>
+<li><a href="#/slide-3-5">3.5. Challenges with measuring pulls</a></li>
+<li><a href="#/slide-3-6">3.6. Theory vs practice</a></li>
+<li><a href="#/slide-3-7">3.7. It's actually even worse</a></li>
+</ul>
+</li>
+<li><a href="#/slide-4">4. Pulls are data-rich</a>
+<ul>
+<li><a href="#/slide-4-1">4.1. So what else can the registry see?</a></li>
+<li><a href="#/slide-4-2">4.2. Headers in Docker pulls</a></li>
+<li><a href="#/slide-4-3">4.3. Headers are rich in information</a></li>
+<li><a href="#/slide-4-4">4.4. Uniques can be extremely useful</a></li>
+<li><a href="#/slide-4-5">4.5. So what else can the registry see?</a></li>
+<li><a href="#/slide-4-6">4.6. Time series data tells us about usage</a></li>
+<li><a href="#/slide-4-7">4.7. Time series data tells us about usage</a></li>
+</ul>
+</li>
+<li><a href="#/slide-5">5. But how can we get this data?</a>
+<ul>
+<li><a href="#/slide-5-1">5.1. Convince your registry to give it you</a></li>
+<li><a href="#/slide-5-2">5.2. Host a registry</a></li>
+<li><a href="#/slide-5-3">5.3. <i>Registry Gateway</i></a></li>
+<li><a href="#/slide-5-4">5.4. <i>Registry Gateway</i></a></li>
+<li><a href="#/slide-5-5">5.5. Simple!(*)</a></li>
+<li><a href="#/slide-5-6">5.6. In certain cases, container registry gateways must proxy</a></li>
+<li><a href="#/slide-5-7">5.7. In certain cases, container registry gateways must proxy</a></li>
+<li><a href="#/slide-5-8">5.8. How Scarf built its container registry gateway</a></li>
+<li><a href="#/slide-5-9">5.9. How Scarf built its container registry gateway</a></li>
+<li><a href="#/slide-5-10">5.10. Data privacy</a></li>
+<li><a href="#/slide-5-11">5.11. Other benefits of the gateway approach</a></li>
+<li><a href="#/slide-5-12">5.12. Notable challenges</a></li>
+<li><a href="#/slide-5-13">5.13. Tying it together</a></li>
+<li><a href="#/slide-5-14">5.14. Thank you!</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</section>
+
+<section>
+<section id="slide-1">
+<h2 id="1"><span class="section-number-2">1.</span> Before we start&#x2026;</h2>
+<div class="outline-text-2" id="text-1">
+</div>
+</section>
+<section id="slide-1-1">
+<h3 id="1-1"><span class="section-number-3">1.1.</span> Quick notes</h3>
+<ul>
+<li>These slides are generated from an org-mode document which is available here: <a href="https://github.com/aviaviavi/talks/blob/master/beyond-the-download-count/presentation.org">https://github.com/aviaviavi/talks/blob/master/beyond-the-download-count/presentation.org</a></li>
+<li>Feel free to jump in with questions as we go!</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-2">
+<h2 id="2"><span class="section-number-2">2.</span> Container registries today &amp; the data provided</h2>
+<div class="outline-text-2" id="text-2">
+</div>
+</section>
+<section id="slide-2-1">
+<h3 id="2-1"><span class="section-number-3">2.1.</span> Stats from container registries are limited</h3>
+<div class="outline-text-3" id="text-2-1">
+</div>
+<ol class="org-ol">
+<li><a id="2-1-1"></a>Docker Hub<br />
+<ul>
+<li>Total pulls for repo</li>
+
+</ul>
+</li>
+<li><a id="2-1-2"></a>Others<br />
+<ol class="org-ol">
+<li><a id="2-1-2-1"></a>GitHub<br />
+<ul>
+<li>Total pulls for repo</li>
+<li>Total pulls by tag</li>
+
+</ul>
+</li>
+<li><a id="2-1-2-2"></a>Quay.io<br />
+<ul>
+<li>Total pulls for repo</li>
+<li>Total pulls by tag</li>
+
+</ul>
+</li>
+<li><a id="2-1-2-3"></a>AWS ECR<br />
+<ul>
+<li>Total pulls for repo</li>
+<li>Time series of pulls by repo</li>
+
+</ul>
+</li>
+<li><a id="2-1-2-4"></a>This will be formatted as a beamer note&#xa0;&#xa0;&#xa0;<span class="tag"><span class="B_note">B_note</span></span><br /></li>
+</ol>
+</li>
+</ol>
+</section>
+<section id="slide-2-2">
+<h3 id="2-2"><span class="section-number-3">2.2.</span> What else might we want to understand?</h3>
+<div class="outline-text-3" id="text-2-2">
+</div>
+<ol class="org-ol">
+<li><a id="2-2-1"></a>Metrics<br />
+<ul>
+<li>Unique pulls (10 pulls from 10 people vs 10 pulls from the same person)</li>
+<li>Pulls by:
+<ul>
+<li>Host platform</li>
+<li>Container runtime</li>
+<li>Country</li>
+<li>Architecture</li>
+<li>Companies</li>
+
+</ul></li>
+<li>Invocations versus downloads of the container?</li>
+
+</ul>
+</li>
+<li><a id="2-2-2"></a>Granularity<br />
+<ul>
+<li>Should be able to understand metrics as a time-series</li>
+<li>For any given metric, what was the count for:
+<ul>
+<li>Yesterday?</li>
+<li>Past week?</li>
+<li>Past month?</li>
+<li>Every Tuesday this year?</li>
+<li>2021?</li>
+
+</ul></li>
+
+</ul>
+</li>
+</ol>
+
+</section>
+</section>
+<section>
+<section id="slide-3">
+<h2 id="3"><span class="section-number-2">3.</span> What is a pull and how does it work</h2>
+<div class="outline-text-2" id="text-3">
+</div>
+</section>
+<section id="slide-3-1">
+<h3 id="3-1"><span class="section-number-3">3.1.</span> What is a pull, really?</h3>
+<div class="outline-text-3" id="text-3-1">
+</div>
+<ol class="org-ol">
+<li><a id="3-1-1"></a>Key Terms<br />
+<ol class="org-ol">
+<li><a id="3-1-1-1"></a>Manifest<br />
+<p>
+An image manifest provides a configuration and set of layers for a single container image for a specific architecture and operating system.
+</p>
+</li>
+<li><a id="3-1-1-2"></a>Blob<br />
+<p>
+Data that comprises the layers of the image
+</p>
+</li>
+</ol>
+</li>
+</ol>
+</section>
+<section id="slide-3-2">
+<h3 id="3-2"><span class="section-number-3">3.2.</span> Key terms</h3>
+<div class="outline-text-3" id="text-3-2">
+</div>
+<ol class="org-ol">
+<li><a id="3-2-1"></a>Manifest<br />
+<p>
+An image manifest provides a configuration and set of layers for a single container image for a specific architecture and operating system.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-json"><span style="color: #4f97d7;">{</span>
+  <span style="color: #4f97d7; font-weight: bold;">"schemaVersion"</span>: <span style="color: #a45bad;">2</span>,
+  <span style="color: #4f97d7; font-weight: bold;">"mediaType"</span>: <span style="color: #2d9574;">"application/vnd.oci.image.manifest.v1+json"</span>,
+  <span style="color: #4f97d7; font-weight: bold;">"config"</span>: <span style="color: #bc6ec5;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">"mediaType"</span>: <span style="color: #2d9574;">"application/vnd.oci.image.config.v1+json"</span>,
+    <span style="color: #4f97d7; font-weight: bold;">"size"</span>: <span style="color: #a45bad;">7023</span>,
+    <span style="color: #4f97d7; font-weight: bold;">"digest"</span>: <span style="color: #2d9574;">"sha256:b5b2b2c507a0944348e0303114d8d93aaaa081732b86451d9bce1f432a537bc7"</span>
+  <span style="color: #bc6ec5;">}</span>,
+  <span style="color: #4f97d7; font-weight: bold;">"layers"</span>: <span style="color: #bc6ec5;">[</span>
+    <span style="color: #2d9574;">{</span>
+      <span style="color: #4f97d7; font-weight: bold;">"mediaType"</span>: <span style="color: #2d9574;">"application/vnd.oci.image.layer.v1.tar+gzip"</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"size"</span>: <span style="color: #a45bad;">32654</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"digest"</span>: <span style="color: #2d9574;">"sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0"</span>
+    <span style="color: #2d9574;">}</span>,
+    <span style="color: #2d9574;">{</span>
+      <span style="color: #4f97d7; font-weight: bold;">"mediaType"</span>: <span style="color: #2d9574;">"application/vnd.oci.image.layer.v1.tar+gzip"</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"size"</span>: <span style="color: #a45bad;">16724</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"digest"</span>: <span style="color: #2d9574;">"sha256:3c3a4604a545cdc127456d94e421cd355bca5b528f4a9c1905b15da2eb4a4c6b"</span>
+    <span style="color: #2d9574;">}</span>,
+    <span style="color: #2d9574;">{</span>
+      <span style="color: #4f97d7; font-weight: bold;">"mediaType"</span>: <span style="color: #2d9574;">"application/vnd.oci.image.layer.v1.tar+gzip"</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"size"</span>: <span style="color: #a45bad;">73109</span>,
+      <span style="color: #4f97d7; font-weight: bold;">"digest"</span>: <span style="color: #2d9574;">"sha256:ec4b8955958665577945c89419d1af06b5f7636b4ac3da7f12184802ad867736"</span>
+    <span style="color: #2d9574;">}</span>
+  <span style="color: #bc6ec5;">]</span>,
+  <span style="color: #4f97d7; font-weight: bold;">"annotations"</span>: <span style="color: #bc6ec5;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">"com.example.key1"</span>: <span style="color: #2d9574;">"value1"</span>,
+    <span style="color: #4f97d7; font-weight: bold;">"com.example.key2"</span>: <span style="color: #2d9574;">"value2"</span>
+  <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+</li>
+</ol>
+
+</section>
+<section id="slide-3-3">
+<h3 id="3-3"><span class="section-number-3">3.3.</span> What is a pull, really?</h3>
+<div class="outline-text-3" id="text-3-3">
+</div>
+<ol class="org-ol">
+<li><a id="3-3-1"></a>Definition (from Docker)<br />
+<blockquote>
+<ul>
+<li>A pull request is defined as up to two GET requests on registry manifest URLs (/v2/*/manifests/*).</li>
+<li>A normal image pull makes a single manifest request.</li>
+<li>A pull request for a multi-arch image makes two manifest requests.</li>
+<li><p>
+HEAD requests are not counted.
+</p>
+
+<p>
+&#x2013; Docker,  <a href="https://docs.docker.com/docker-hub/download-rate-limit/">https://docs.docker.com/docker-hub/download-rate-limit/</a>
+</p></li>
+
+</ul>
+</blockquote>
+</li>
+</ol>
+</section>
+<section id="slide-3-4">
+<h3 id="3-4"><span class="section-number-3">3.4.</span> Quick example</h3>
+<div class="outline-text-3" id="text-3-4">
+</div>
+<ol class="org-ol">
+<li><a id="3-4-1"></a>Call diagram<br />
+<div id="org99a91b6" class="figure">
+<p><img src="pull-handshake.png" alt="pull-handshake.png" />
+</p>
+</div>
+</li>
+
+<li><a id="3-4-2"></a>Notes<br />
+<ul>
+<li><i>Name</i>: eg, <code>organization-name/image-name</code></li>
+<li>Reference: A tag (<code>latest</code>), or a digest (<code>sha256aaabbbcccddd...</code>).</li>
+
+</ul>
+</li>
+</ol>
+</section>
+<section id="slide-3-5">
+<h3 id="3-5"><span class="section-number-3">3.5.</span> Challenges with measuring pulls</h3>
+<ul>
+<li>A "pull" spans multiple API calls
+<ul>
+<li>Event processors must be stateful, and must include a notion of identity at the request level.</li>
+
+</ul></li>
+<li>A "normal" image pull vs "abnormal"</li>
+<li>Manifests vs blobs</li>
+<li>Different clients have different behavior</li>
+
+</ul>
+</section>
+<section id="slide-3-6">
+<h3 id="3-6"><span class="section-number-3">3.6.</span> Theory vs practice</h3>
+<div class="outline-text-3" id="text-3-6">
+</div>
+<ol class="org-ol">
+<li><a id="3-6-1"></a>In theory<br />
+<p>
+Clients will call HEAD for the manifest and only call GET when updates are needed.
+</p>
+</li>
+<li><a id="3-6-2"></a>In practice<br />
+<p>
+Many clients will just call GET every time.
+Examples:
+</p>
+<ul>
+<li>GoHTTPClient</li>
+<li>Older versions of Watchtower</li>
+<li>Older versions of Diujn</li>
+<li>Older versions of Docker for Mac</li>
+
+</ul>
+</li>
+</ol>
+</section>
+<section id="slide-3-7">
+<h3 id="3-7"><span class="section-number-3">3.7.</span> It's actually even worse</h3>
+<p>
+<a href="https://github.com/cri-o/cri-o/issues/5039">Some clients fetch manifests twice (eg, cri-o)</a>
+</p>
+
+
+<div id="org38dc791" class="figure">
+<p><img src="./crio-issue-title.png" alt="crio-issue-title.png" />
+</p>
+</div>
+
+
+<div id="org6a7be2b" class="figure">
+<p><img src="./crio-issue-close.png" alt="crio-issue-close.png" />
+</p>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-4">
+<h2 id="4"><span class="section-number-2">4.</span> Pulls are data-rich</h2>
+<div class="outline-text-2" id="text-4">
+</div>
+</section>
+<section id="slide-4-1">
+<h3 id="4-1"><span class="section-number-3">4.1.</span> So what else can the registry see?</h3>
+<ul>
+<li>Headers</li>
+<li>Time series information</li>
+
+</ul>
+</section>
+<section id="slide-4-2">
+<h3 id="4-2"><span class="section-number-3">4.2.</span> Headers in Docker pulls</h3>
+<div class="outline-text-3" id="text-4-2">
+</div>
+<ol class="org-ol">
+<li><a id="4-2-1"></a>Headers per request<br />
+<div class="org-src-container">
+
+<pre class="src src-text">  X-Request-ID: &lt;request id&gt;
+  X-Forwarded-For: &lt;ip&gt;
+  authorization: Bearer &lt;token&gt;
+  accept: application/vnd.docker.distribution.manifest.v2+json
+  accept: application/vnd.docker.distribution.manifest.list.v2+json
+  accept: application/vnd.docker.distribution.manifest.v1+json
+  user-agent: docker/20.10.6 go/go1.13.15 git-commit/a3dc69e6b9
+              os/windows arch/amd64 UpstreamClient(Go-http-client/1.1)
+</pre>
+</div>
+</li>
+<li><a id="4-2-2"></a>This info can tell us<br />
+<ul>
+<li>A notion of uniqueness(!!)</li>
+<li>IP request metadata</li>
+<li>Container runtime</li>
+<li>Platform</li>
+
+</ul>
+</li>
+</ol>
+</section>
+<section id="slide-4-3">
+<h3 id="4-3"><span class="section-number-3">4.3.</span> Headers are rich in information</h3>
+<div class="outline-text-3" id="text-4-3">
+</div>
+<ol class="org-ol">
+<li><a id="4-3-1"></a>A notion of uniqueness<br />
+<p>
+You may have had 1000 downloads today but from only 5 distinct sources
+</p>
+</li>
+<li><a id="4-3-2"></a>IP request metadata<br />
+<ul>
+<li>Where are your users distributed geographically?</li>
+<li>Are your downloads coming from companies or individuals? Which companies?</li>
+<li>Laptops or CI?</li>
+<li>Which clouds?</li>
+
+</ul>
+</li>
+<li><a id="4-3-3"></a>Platform<br />
+<ul>
+<li>Container runtime: Docker, containerd, cri-o, Watchertower?
+<ul>
+<li>If lots old versions are involved, your pull counts are likely inflated!</li>
+
+</ul></li>
+<li>What is the breakdown of host OS? Architecture?</li>
+
+</ul>
+</li>
+</ol>
+</section>
+<section id="slide-4-4">
+<h3 id="4-4"><span class="section-number-3">4.4.</span> Uniques can be extremely useful</h3>
+<blockquote>
+<p>
+Two users are responsible for 73,000 pulls between them, with the next 10 being responsible for 55,000 between them. Almost half of our pulls through Scarf can be attributed to 20 users with misconfigured or overly aggressive deployment/update services
+</p>
+
+<ul>
+<li>LinuxServer.io Blog</li>
+
+</ul>
+</blockquote>
+
+<p>
+link - <a href="https://www.linuxserver.io/blog/unravelling-some-stats">https://www.linuxserver.io/blog/unravelling-some-stats</a>
+</p>
+
+<ol class="org-ol">
+<li><a id="4-4-1"></a>Graphs<br />
+<ol class="org-ol">
+<li><a id="4-4-1-1"></a>g1<br />
+<div id="org97ed57b" class="figure">
+<p><img src="./linux-server-1.png" alt="linux-server-1.png" />
+</p>
+</div>
+</li>
+<li><a id="4-4-1-2"></a>g2<br />
+<div id="orgd7630ae" class="figure">
+<p><img src="./linux-server-2.png" alt="linux-server-2.png" />
+</p>
+</div>
+</li>
+</ol>
+</li>
+</ol>
+
+</section>
+<section id="slide-4-5">
+<h3 id="4-5"><span class="section-number-3">4.5.</span> So what else can the registry see?</h3>
+<div class="outline-text-3" id="text-4-5">
+</div>
+<ol class="org-ol">
+<li><a id="4-5-1"></a>Time series of requests<br />
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">Time</th>
+<th scope="col" class="org-left">Origin ID</th>
+<th scope="col" class="org-left">Request Type</th>
+<th scope="col" class="org-left">Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">12:00</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:00</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>GET</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:05</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:10</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:15</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:20</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+</tbody>
+</table>
+</li>
+
+<li><a id="4-5-2"></a>This info can tell us<br />
+<ul>
+<li>Invocations of the container vs downloads of the container</li>
+<li>Gives clues to activity / behavior</li>
+
+</ul>
+</li>
+</ol>
+
+</section>
+<section id="slide-4-6">
+<h3 id="4-6"><span class="section-number-3">4.6.</span> Time series data tells us about usage</h3>
+<div class="outline-text-3" id="text-4-6">
+</div>
+<ol class="org-ol">
+<li><a id="4-6-1"></a>Consider this access patterns<br />
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">Time</th>
+<th scope="col" class="org-left">Origin ID</th>
+<th scope="col" class="org-left">Request Type</th>
+<th scope="col" class="org-left">Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">12:00</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:00</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>GET</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:05</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:10</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:15</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:20</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li><a id="4-6-2"></a>Relevant info<br />
+<ul>
+<li>Highly regular intervals, polling for latest version</li>
+
+</ul>
+</li>
+<li><a id="4-6-3"></a>Possible explanations<br />
+<ul>
+<li>Production deployment</li>
+<li>Internal tooling deployment</li>
+
+</ul>
+</li>
+</ol>
+
+</section>
+<section id="slide-4-7">
+<h3 id="4-7"><span class="section-number-3">4.7.</span> Time series data tells us about usage</h3>
+<div class="outline-text-3" id="text-4-7">
+</div>
+<ol class="org-ol">
+<li><a id="4-7-1"></a>Versus this one<br />
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">Time</th>
+<th scope="col" class="org-left">Origin ID</th>
+<th scope="col" class="org-left">Request Type</th>
+<th scope="col" class="org-left">Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">12:00</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">12:00</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>GET</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">13:09</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">13:09</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">13:10</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">09:01</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/1.0.1</code></td>
+</tr>
+
+<tr>
+<td class="org-right">09:01</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>GET</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/1.0.1</code></td>
+</tr>
+
+<tr>
+<td class="org-right">09:03</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+
+<tr>
+<td class="org-right">09:10</td>
+<td class="org-left">abc</td>
+<td class="org-left"><code>HEAD</code></td>
+<td class="org-left"><code>/v2/image-name/manifests/latest</code></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li><a id="4-7-2"></a>Relevant info<br />
+<ul>
+<li>Irregular intervals</li>
+<li>Multiple versions</li>
+
+</ul>
+</li>
+<li><a id="4-7-3"></a>Possible explanations<br />
+<ul>
+<li>Local development</li>
+
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section>
+<section id="slide-5">
+<h2 id="5"><span class="section-number-2">5.</span> But how can we get this data?</h2>
+<div class="outline-text-2" id="text-5">
+</div>
+</section>
+<section id="slide-5-1">
+<h3 id="5-1"><span class="section-number-3">5.1.</span> Convince your registry to give it you</h3>
+<p>
+Let me know how it goes!
+</p>
+
+
+<div id="org3b38ae8" class="figure">
+<p><img src="./data-requests.png" alt="data-requests.png" />
+</p>
+</div>
+
+</section>
+<section id="slide-5-2">
+<h3 id="5-2"><span class="section-number-3">5.2.</span> Host a registry</h3>
+<div class="org-src-container">
+
+<pre class="src src-sh">$ docker pull yourdomain.com/your-image
+</pre>
+</div>
+
+<ol class="org-ol">
+<li><a id="5-2-1"></a>Pros<br />
+<ul>
+<li>Open source solutions (eg <a href="https://github.com/distribution/distribution">distribution</a>)</li>
+<li>Distribute from your own domain</li>
+<li>Full access (publishing, data handling, insights, etc)</li>
+
+</ul>
+</li>
+<li><a id="5-2-2"></a>Cons<br />
+<ul>
+<li>Bandwidth is expensive</li>
+<li>Availability and performance are on you
+<ul>
+<li><i>How long will it take your us-west-2 machine to stream a 1GB container to a user in Mumbai?</i></li>
+
+</ul></li>
+
+</ul>
+</li>
+</ol>
+
+</section>
+<section id="slide-5-3">
+<h3 id="5-3"><span class="section-number-3">5.3.</span> <i>Registry Gateway</i></h3>
+<div class="outline-text-3" id="text-5-3">
+</div>
+<ol class="org-ol">
+<li><a id="5-3-1"></a>Idea<br />
+<p>
+Put a service in front of the registry that:
+</p>
+
+<ul>
+<li>Passes traffic transparently to the registry that hosts the container via a redirect</li>
+<li>Processes traffic to process pull data</li>
+
+</ul>
+</li>
+
+<li><a id="5-3-2"></a>Ignore<br />
+<div class="org-src-container">
+
+<pre class="src src-sh">$ docker pull yourdomain.com/your-image
+</pre>
+</div>
+
+
+<div id="org8afaa35" class="figure">
+<p><img src="gateway_desription.png" alt="gateway_desription.png" />
+</p>
+</div>
+</li>
+</ol>
+
+</section>
+<section id="slide-5-4">
+<h3 id="5-4"><span class="section-number-3">5.4.</span> <i>Registry Gateway</i></h3>
+<div class="outline-text-3" id="text-5-4">
+</div>
+<ol class="org-ol">
+<li><a id="5-4-1"></a>Pros<br />
+<ul>
+<li>Can access all request data</li>
+<li>Lightweight service - redirection can be very dumb</li>
+<li>Robust to API changes from the the client/registry</li>
+<li>Simply(*) redirecting rather than proxying means minimal overhead (bandwidth and speed)</li>
+<li>Decoupling from registry</li>
+<li>Distribute from your own domain</li>
+<li>Can work for things besides containers!</li>
+
+</ul>
+</li>
+
+<li><a id="5-4-2"></a>Cons<br />
+<ul>
+<li>Added complexity
+<ul>
+<li>Failure point</li>
+<li>Performance choke point</li>
+
+</ul></li>
+
+</ul>
+</li>
+</ol>
+
+</section>
+<section id="slide-5-5">
+<h3 id="5-5"><span class="section-number-3">5.5.</span> Simple!(*)</h3>
+<div class="org-src-container">
+
+<pre class="src src-nginx">   server {
+     server_name a.domain.com
+     listen 443;
+     rewrite (.*) https://registry-1.docker.io$1 permanent;
+   }
+</pre>
+</div>
+
+<ol class="org-ol">
+<li><a id="5-5-1"></a>&#x2026;Almost<br />
+<ul>
+<li>Gateway still needs to be available and fast globally</li>
+<li>Can't actually always redirect :'(</li>
+
+</ul>
+</li>
+</ol>
+
+</section>
+<section id="slide-5-6">
+<h3 id="5-6"><span class="section-number-3">5.6.</span> In certain cases, container registry gateways must proxy</h3>
+<div class="outline-text-3" id="text-5-6">
+</div>
+<ol class="org-ol">
+<li><a id="5-6-1"></a>Standard auth &amp; pull<br />
+<div id="org8110b8d" class="figure">
+<p><img src="auth-registry-handshake.png" alt="auth-registry-handshake.png" width="75%" />
+</p>
+</div>
+</li>
+</ol>
+
+</section>
+<section id="slide-5-7">
+<h3 id="5-7"><span class="section-number-3">5.7.</span> In certain cases, container registry gateways must proxy</h3>
+<div class="outline-text-3" id="text-5-7">
+</div>
+<ol class="org-ol">
+<li><a id="5-7-1"></a>Auth &amp; pull with Gateway<br />
+<div id="org458cba1" class="figure">
+<p><img src="auth-gateway-handshake.png" alt="auth-gateway-handshake.png" />
+</p>
+</div>
+
+
+<p>
+Some clients mess up the <code>/token</code> request when redirected, confusing <code>service address</code> &amp; <code>redirect target</code>.
+</p>
+</li>
+</ol>
+</section>
+<section id="slide-5-8">
+<h3 id="5-8"><span class="section-number-3">5.8.</span> How Scarf built its container registry gateway</h3>
+<div class="outline-text-3" id="text-5-8">
+</div>
+<ol class="org-ol">
+<li><a id="5-8-1"></a>Scarf Gateway<br />
+<div id="orgd0197a2" class="figure">
+<p><img src="./scarf-gateway.png" alt="scarf-gateway.png" />
+</p>
+</div>
+</li>
+</ol>
+
+</section>
+<section id="slide-5-9">
+<h3 id="5-9"><span class="section-number-3">5.9.</span> How Scarf built its container registry gateway</h3>
+<p>
+(to be open-sourced soon)
+</p>
+<ol class="org-ol">
+<li><a id="5-9-1"></a>Phase 1<br />
+<p>
+<i>A general recommended approach to anyone wanting to get started building their own</i>
+</p>
+<ul>
+<li>Nginx
+<ul>
+<li>Send access logs to storage (we were using AWS Cloudwatch)</li>
+<li>Lua for any custom business logic you might want, eg reading configs from Redis</li>
+
+</ul></li>
+<li>Process logs asynchronously to generate analytics &amp; insights</li>
+
+</ul>
+</li>
+<li><a id="5-9-2"></a>Phase 2<br />
+<ul>
+<li>Server as hand-written Haskell code</li>
+<li>Configuration in-memory</li>
+<li>Send access logs to time series storage, eg Kafka</li>
+<li><code>distribution</code> as a pull-through-cache when we are forced to proxy</li>
+
+</ul>
+</li>
+</ol>
+</section>
+<section id="slide-5-10">
+<h3 id="5-10"><span class="section-number-3">5.10.</span> Data privacy</h3>
+<p>
+<i>This can be done while still completely preserving end-user privacy.</i>
+</p>
+
+<ul>
+<li>Depending on how you store and process this data, you may or may not run into compliance considerations like GDPR</li>
+<li>Recommendations:
+<ul>
+<li>Don't touch PII you don't need</li>
+<li>Delete it once you are done processing it</li>
+<li>Leverage 3rd parties to handle it on your behalf</li>
+<li>Consult legal counsel</li>
+
+</ul></li>
+
+</ul>
+
+</section>
+<section id="slide-5-11">
+<h3 id="5-11"><span class="section-number-3">5.11.</span> Other benefits of the gateway approach</h3>
+<ul>
+<li>Distribute from your own domain, not someone else's</li>
+<li>Ability to switch registries on-the-fly without breaking anything downstream.
+<ul>
+<li>Dual publishing can keep your containers online when primary registry goes down</li>
+
+</ul></li>
+
+</ul>
+
+</section>
+<section id="slide-5-12">
+<h3 id="5-12"><span class="section-number-3">5.12.</span> Notable challenges</h3>
+<ul>
+<li>Easy to build, harder to scale
+<ul>
+<li>Multi-region availability, redundancy, etc is where the real complexity lives</li>
+
+</ul></li>
+<li>Proxying as little as possible</li>
+<li>Many competing container runtimes / clients -&gt; edge-case bugs</li>
+
+</ul>
+
+</section>
+<section id="slide-5-13">
+<h3 id="5-13"><span class="section-number-3">5.13.</span> Tying it together</h3>
+<ul>
+<li>Registry data can be useful!</li>
+<li>Your current registry provider doesn't provide access to pull data, but there are still ways to get to it.</li>
+<li>Registry gateways can be a reasonable option</li>
+
+</ul>
+
+</section>
+<section id="slide-5-14">
+<h3 id="5-14"><span class="section-number-3">5.14.</span> Thank you!</h3>
+<div class="outline-text-3" id="text-5-14">
+</div>
+<ol class="org-ol">
+<li><a id="5-14-1"></a>Avi Press<br />
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Website</td>
+<td class="org-left"><a href="https://avi.press">https://avi.press</a></td>
+</tr>
+
+<tr>
+<td class="org-left">Twitter</td>
+<td class="org-left"><a href="https://twitter.com/avi_press">@avi_<sub>press</sub></a></td>
+</tr>
+
+<tr>
+<td class="org-left">GitHub</td>
+<td class="org-left"><a href="https://github.com/aviaviavi">aviaviavi</a></td>
+</tr>
+
+<tr>
+<td class="org-left">LinkedIn</td>
+<td class="org-left"><a href="https://www.linkedin.com/in/avi-press-4437a356/">link</a></td>
+</tr>
+</tbody>
+</table>
+</li>
+
+<li><a id="5-14-2"></a>Scarf<br />
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Website</td>
+<td class="org-left"><a href="https://scarf.sh">https://scarf.sh</a></td>
+</tr>
+
+<tr>
+<td class="org-left">Twitter</td>
+<td class="org-left"><a href="https://twitter.com/scarf_oss">scarf<sub>oss</sub></a></td>
+</tr>
+
+<tr>
+<td class="org-left">GitHub</td>
+<td class="org-left"><a href="https://github.com/scarf-sh">scarf-sh</a></td>
+</tr>
+
+<tr>
+<td class="org-left">LinkedIn</td>
+<td class="org-left"><a href="https://www.linkedin.com/in/avi-press-4437a356/">link</a></td>
+</tr>
+</tbody>
+</table>
+</li>
+</ol>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@3.8.0/lib/js/head.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@3.8.0/js/reveal.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'convex', // see README of reveal.js for options
+transitionSpeed: 'default',
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+ { src: 'https://cdn.jsdelivr.net/npm/reveal.js@3.8.0/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'https://cdn.jsdelivr.net/npm/reveal.js@3.8.0/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: 'https://cdn.jsdelivr.net/npm/reveal.js@3.8.0/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: 'https://cdn.jsdelivr.net/npm/reveal.js@3.8.0/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: 'https://cdn.jsdelivr.net/npm/reveal.js@3.8.0/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } }]
+
+});
+</script>
+</body>
+</html>
